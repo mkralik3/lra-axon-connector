@@ -7,8 +7,8 @@ import org.axonframework.messaging.MessageHandlerInterceptor;
 import org.axonframework.messaging.unitofwork.UnitOfWork;
 import org.axonframework.modelling.command.TargetAggregateIdentifier;
 import org.eclipse.microprofile.lra.annotation.ws.rs.LRA;
+import org.mkralik.learning.lra.axon.api.JoinLRA;
 import org.mkralik.learning.lra.axon.api.LRAContext;
-import org.mkralik.learning.lra.axon.api.StartLRA;
 import org.mkralik.learning.lra.axon.store.IncomingLraContextsStore;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -31,7 +31,7 @@ public class CommandHandlerInterceptor implements MessageHandlerInterceptor<Comm
     public Object handle(UnitOfWork<? extends CommandMessage<?>> unitOfWork, InterceptorChain interceptorChain) throws Exception {
         CommandMessage<?> command = unitOfWork.getMessage();
         log.info("CommandHandlerInterceptor command: [{}].", command);
-        if(command.getPayloadType().isAnnotationPresent(StartLRA.class)){
+        if(command.getPayloadType().isAnnotationPresent(JoinLRA.class)){
             //Arriving command wants to start LRA. The LRA context is saved in case the aggregate will be fire an event.
             URI lraContext = null;
 
