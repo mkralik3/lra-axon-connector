@@ -42,9 +42,6 @@ public class CommandHandlerInterceptor implements MessageHandlerInterceptor<Comm
 
             if (!incomingLraField.isPresent()){
                 log.error("Command wants to start LRA but the LRAContext annotation with context missing");
-                //it is need to start new LRA
-                //lraContext = startLRA
-                //SKIP FOR NOW
             }else{
                 lraContext = (URI) getObjectFromField(command.getPayload(), incomingLraField.get());
             }

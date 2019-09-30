@@ -14,11 +14,12 @@ import org.mkralik.learning.lra.axon.store.IncomingLraContextsStore;
 import org.mkralik.learning.lra.axon.store.LraContextsStore;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.web.server.LocalServerPort;
 import org.springframework.stereotype.Component;
 
+import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.net.URLEncoder;
 
 @Slf4j
 @Component
@@ -58,25 +59,27 @@ public class EventHandlerInterceptor implements MessageHandlerInterceptor<EventM
         return interceptorChain.proceed();
     }
 
-    private URI joinLraForTargetAggregate(URI lraContext, String targetAggregateId) throws URISyntaxException {
+    private URI joinLraForTargetAggregate(URI lraContext, String targetAggregateId) throws URISyntaxException, UnsupportedEncodingException {
+        String encodedTargetId = URLEncoder.encode( targetAggregateId, "UTF-8" );
+
         URI uri1 = lraClient.joinLRA(lraContext,
                 0L,
-                new URI("http://localhost:" + port + "/axonLra/compensate/" + targetAggregateId),
-                new URI("http://localhost:" + port + "/axonLra/complete/" + targetAggregateId),
+                new URI("http://localhost:" + port + "/axonLra/compensate?id=" + encodedTargetId),
+                new URI("http://localhost:" + port + "/axonLra/complete?id=" + encodedTargetId),
 //                new URI("http://localhost:9001/axonLra/forget/" + targetAggregateId),
 //                new URI("http://localhost:9001/axonLra/leave/" + targetAggregateId),
 //                new URI("http://localhost:9001/axonLra/after/" + targetAggregateId),
 //                new URI("http://localhost:9001/axonLra/status/" + targetAggregateId),
                 null,null,
-                new URI("http://localhost:" + port + "/axonLra/status/" + targetAggregateId),
+                new URI("http://localhost:" + port + "/axonLra/status?id=" + encodedTargetId),
                 null,null);
         log.info("URL for join:\n {}\n{}\n{}\n",
-                new URI("http://localhost:" + port + "/axonLra/compensate/" + targetAggregateId),
-                new URI("http://localhost:" + port + "/axonLra/complete/" + targetAggregateId),
+                new URI("http://localhost:" + port + "/axonLra/compensate?id=" + encodedTargetId),
+                new URI("http://localhost:" + port + "/axonLra/complete?id=" + encodedTargetId),
 //                new URI("http://localhost:9001/axonLra/forget/" + targetAggregateId),
 //                new URI("http://localhost:9001/axonLra/leave/" + targetAggregateId),
 //                new URI("http://localhost:9001/axonLra/after/" + targetAggregateId),
-                new URI("http://localhost:" + port + "/axonLra/status/" + targetAggregateId)
+                new URI("http://localhost:" + port + "/axonLra/status?id=" + encodedTargetId)
                 );
         return uri1;
     }

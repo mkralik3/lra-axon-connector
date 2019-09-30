@@ -11,6 +11,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import javax.ws.rs.core.Response;
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
 import java.util.concurrent.TimeUnit;
 
 @RestController
@@ -27,48 +29,51 @@ public class AxonLraEndpointsSpring {
     @Autowired
     private IncomingLraContextsStore incomingLraContextsStore;
 
-    @PutMapping("/complete/{id}")
-    public Response complete(@PathVariable String id) {
+    @PutMapping("/complete?id=")
+    public Response complete(@RequestParam(value = "id") String id) throws UnsupportedEncodingException {
+        String realId = URLDecoder.decode( id, "UTF-8" );
         log.info("in the AXONLRA endpoint function complete with id: {}", id);
-        lraContextsStore.getContextForAggregate(id).setStatus(ParticipantStatus.Completing);
-        boolean result = commandGateway.sendAndWait(new AxonLraCompleteCommand(id), 2, TimeUnit.MINUTES);
+        lraContextsStore.getContextForAggregate(realId).setStatus(ParticipantStatus.Completing);
+        boolean result = commandGateway.sendAndWait(new AxonLraCompleteCommand(realId), 2, TimeUnit.MINUTES);
         log.info("result of AxonLraCompleteCommand from aggregate is: {}", result);
         if(result){
-            lraContextsStore.getContextForAggregate(id).setStatus(ParticipantStatus.Completed);
+            lraContextsStore.getContextForAggregate(realId).setStatus(ParticipantStatus.Completed);
         }else {
-            lraContextsStore.getContextForAggregate(id).setStatus(ParticipantStatus.FailedToComplete);
+            lraContextsStore.getContextForAggregate(realId).setStatus(ParticipantStatus.FailedToComplete);
         }
-        return Response.ok(lraContextsStore.getContextForAggregate(id).getStatus()).build();
+        return Response.ok(lraContextsStore.getContextForAggregate(realId).getStatus()).build();
     }
 
-    @PutMapping("/compensate/{id}")
-    public Response compensate(@PathVariable String id) {
-        log.info("in the AXONLRA endpoint function compensate with id: {}", id);
-        lraContextsStore.getContextForAggregate(id).setStatus(ParticipantStatus.Compensating);
+    @PutMapping("/compensate?id=")
+    public Response compensate(@RequestParam(value = "id") String id) throws UnsupportedEncodingException {
+        String realId = URLDecoder.decode( id, "UTF-8" );
+        log.info("in the AXONLRA endpoint function compensate with id: {}", realId);
+        lraContextsStore.getContextForAggregate(realId).setStatus(ParticipantStatus.Compensating);
         boolean result = commandGateway.sendAndWait(new AxonLraCompensateCommand(id), 2, TimeUnit.MINUTES);
         log.info("result of AxonLraCompensateCommand from aggregate is: {}", result);
         if(result){
-            lraContextsStore.getContextForAggregate(id).setStatus(ParticipantStatus.Compensated);
+            lraContextsStore.getContextForAggregate(realId).setStatus(ParticipantStatus.Compensated);
         }else {
-            lraContextsStore.getContextForAggregate(id).setStatus(ParticipantStatus.FailedToCompensate);
+            lraContextsStore.getContextForAggregate(realId).setStatus(ParticipantStatus.FailedToCompensate);
         }
-        return Response.ok(lraContextsStore.getContextForAggregate(id).getStatus()).build();
+        return Response.ok(lraContextsStore.getContextForAggregate(realId).getStatus()).build();
     }
 
-    @PutMapping("/leave/{id}")
-    public void leave(@PathVariable String id) {
+    @PutMapping("/leave?id=")
+    public void leave(@RequestParam(value = "id") String id) {
         log.info("in the AXONLRA endpoint function leave with id: {}", id);
     }
 
-    @DeleteMapping("/forget/{id}")
-    public void forget(@PathVariable String id) {
+    @DeleteMapping("/forget?id=")
+    public void forget(@RequestParam(value = "id") String id) {
         log.info("in the AXONLRA endpoint function forget with id: {}", id);
     }
 
-    @GetMapping("/status/{id}")
-    public Response status(@PathVariable String id) {
+    @GetMapping("/status?id=")
+    public Response status(@RequestParam(value = "id") String id) throws UnsupportedEncodingException {
+        String realId = URLDecoder.decode( id, "UTF-8" );
         log.info("in the AXONLRA endpoint function status with id: {}", id);
-        return Response.ok().entity(lraContextsStore.getContextForAggregate(id).getStatus()).build();
+        return Response.ok().entity(lraContextsStore.getContextForAggregate(realId).getStatus()).build();
     }
 
 //    @GetMapping("/after/{id}")
