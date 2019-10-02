@@ -4,6 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.axonframework.commandhandling.CommandMessage;
 import org.axonframework.messaging.InterceptorChain;
 import org.axonframework.messaging.MessageHandlerInterceptor;
+import org.axonframework.messaging.MetaData;
 import org.axonframework.messaging.unitofwork.UnitOfWork;
 import org.axonframework.modelling.command.TargetAggregateIdentifier;
 import org.eclipse.microprofile.lra.annotation.ws.rs.LRA;
@@ -13,6 +14,7 @@ import org.mkralik.learning.lra.axon.store.IncomingLraContextsStore;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import javax.naming.ConfigurationException;
 import java.lang.reflect.Field;
 import java.net.URI;
 import java.util.Arrays;
@@ -34,27 +36,33 @@ public class CommandHandlerInterceptor implements MessageHandlerInterceptor<Comm
         if(command.getPayloadType().isAnnotationPresent(JoinLRA.class)){
             //Arriving command wants to start LRA. The LRA context is saved in case the aggregate will be fire an event.
             URI lraContext = null;
-
-            Optional<Field> incomingLraField = Arrays.stream(command.getPayloadType().getDeclaredFields())
+            Optional<Field> incomingCommandLraField = Arrays.stream(command.getPayloadType().getDeclaredFields())
                     .filter(field -> field.isAnnotationPresent(LRAContext.class)).findAny();
-            Optional<Field> targetIdentifierField = Arrays.stream(command.getPayloadType().getDeclaredFields())
-                    .filter(field -> field.isAnnotationPresent(TargetAggregateIdentifier.class)).findAny();
 
-            if (!incomingLraField.isPresent()){
-                log.error("Command wants to start LRA but the LRAContext annotation with context missing");
+            Field targetIdentifierField = Arrays.stream(command.getPayloadType().getDeclaredFields())
+                    .filter(field -> field.isAnnotationPresent(TargetAggregateIdentifier.class)).findAny().get();
+            String aggregateTargetIdentifier = String.valueOf(getObjectFromField(command.getPayload(), targetIdentifierField));
+
+
+            if(incomingCommandLraField.isPresent()){
+                // user specify context explicitly, use it and also add it to metadata
+                log.info("Context Field is present, the context is override");
+                final URI context = lraContext = (URI) getObjectFromField(command.getPayload(), incomingCommandLraField.get());
+                unitOfWork.transformMessage(event -> event
+                        .andMetaData(singletonMap(LRA.LRA_HTTP_CONTEXT_HEADER, context)));
+            }else if (command.getMetaData().get(LRA.LRA_HTTP_CONTEXT_HEADER)!=null){
+                // user doesn't specify context but the context comes from source
+                log.info("Context Field is not present, the context is used from metadata");
+                lraContext = (URI) command.getMetaData().get(LRA.LRA_HTTP_CONTEXT_HEADER);
             }else{
-                lraContext = (URI) getObjectFromField(command.getPayload(), incomingLraField.get());
+                throw new ConfigurationException("Command contains annotation for join LRA but context missing! " +
+                        "The source method of the command doesn't belong to LRA context and the context doesn't provide explicitly by @LRAContext");
             }
-            String targetIdentifier = String.valueOf(getObjectFromField(command.getPayload(), targetIdentifierField.get()));
-
-            incomingLraContextsStore.saveIncomingContextForAggregate(targetIdentifier, lraContext);
-            command.andMetaData(singletonMap(LRA.LRA_HTTP_CONTEXT_HEADER, lraContext));
+            incomingLraContextsStore.saveIncomingContextForAggregate(aggregateTargetIdentifier, lraContext);
         }
-
         return interceptorChain.proceed();
     }
 
-    // the type of object is not know ?
     private Object getObjectFromField(Object object, Field field) throws IllegalAccessException {
         Object result = null;
         if(!field.isAccessible()){

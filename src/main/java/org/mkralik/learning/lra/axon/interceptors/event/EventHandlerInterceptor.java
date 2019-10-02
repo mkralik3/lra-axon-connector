@@ -41,17 +41,18 @@ public class EventHandlerInterceptor implements MessageHandlerInterceptor<EventM
     public Object handle(UnitOfWork<? extends EventMessage<?>> unitOfWork,
                          InterceptorChain interceptorChain) throws Exception {
         GenericDomainEventMessage event = (GenericDomainEventMessage) unitOfWork.getMessage();
-        log.info("EventHandlerInterceptor event: [{}].", event);
         String aggregateID = event.getAggregateIdentifier();
         URI lraContextFromMetadata = (URI) event.getMetaData().get(LRA.LRA_HTTP_CONTEXT_HEADER);
 
-        // handled event contains LRA context
         if(lraContextFromMetadata!=null){
+            // handled event contains LRA context but the event can be from other parts
             URI waitingContextForAggregate = incomingContextsStore.getIncomingContextForAggregate(aggregateID);
             // waiting any LRA context for joining and if yes, is it for this event
             if(waitingContextForAggregate!=null && waitingContextForAggregate.equals(lraContextFromMetadata)){
                 URI recoveryParticipantUri = joinLraForTargetAggregate(lraContextFromMetadata, aggregateID);
                 incomingContextsStore.deleteIncomingContextForAggregate(event.getAggregateIdentifier());
+
+                //TODO will be deleted
                 lraContextsStore.saveContextForAggregate(aggregateID ,
                         new AxonLraContextInfo(waitingContextForAggregate, recoveryParticipantUri, ParticipantStatus.Active));
             }
@@ -61,26 +62,23 @@ public class EventHandlerInterceptor implements MessageHandlerInterceptor<EventM
 
     private URI joinLraForTargetAggregate(URI lraContext, String targetAggregateId) throws URISyntaxException, UnsupportedEncodingException {
         String encodedTargetId = URLEncoder.encode( targetAggregateId, "UTF-8" );
-
-        URI uri1 = lraClient.joinLRA(lraContext,
+        URI recoveryUri = lraClient.joinLRA(lraContext,
                 0L,
-                new URI("http://localhost:" + port + "/axonLra/compensate?id=" + encodedTargetId),
-                new URI("http://localhost:" + port + "/axonLra/complete?id=" + encodedTargetId),
-//                new URI("http://localhost:9001/axonLra/forget/" + targetAggregateId),
-//                new URI("http://localhost:9001/axonLra/leave/" + targetAggregateId),
-//                new URI("http://localhost:9001/axonLra/after/" + targetAggregateId),
-//                new URI("http://localhost:9001/axonLra/status/" + targetAggregateId),
-                null,null,
-                new URI("http://localhost:" + port + "/axonLra/status?id=" + encodedTargetId),
-                null,null);
-        log.info("URL for join:\n {}\n{}\n{}\n",
-                new URI("http://localhost:" + port + "/axonLra/compensate?id=" + encodedTargetId),
-                new URI("http://localhost:" + port + "/axonLra/complete?id=" + encodedTargetId),
-//                new URI("http://localhost:9001/axonLra/forget/" + targetAggregateId),
-//                new URI("http://localhost:9001/axonLra/leave/" + targetAggregateId),
-//                new URI("http://localhost:9001/axonLra/after/" + targetAggregateId),
-                new URI("http://localhost:" + port + "/axonLra/status?id=" + encodedTargetId)
+                new URI("http://localhost:" + port + "/axonLra/compensate/" + encodedTargetId),
+                new URI("http://localhost:" + port + "/axonLra/complete/" + encodedTargetId),
+                new URI("http://localhost:" + port + "/axonLra/forget/" + encodedTargetId),
+                new URI("http://localhost:" + port + "/axonLra/leave/" + encodedTargetId),
+                new URI("http://localhost:" + port + "/axonLra/after/" + encodedTargetId),
+                new URI("http://localhost:" + port + "/axonLra/status/" + encodedTargetId),
+                null);
+        log.info("URL for join:\n {}\n{}\n{}\n{}\n{}\n{}\n",
+                new URI("http://localhost:" + port + "/axonLra/compensate/" + encodedTargetId),
+                new URI("http://localhost:" + port + "/axonLra/complete/" + encodedTargetId),
+                new URI("http://localhost:" + port + "/axonLra/forget/" + encodedTargetId),
+                new URI("http://localhost:" + port + "/axonLra/leave/" + encodedTargetId),
+                new URI("http://localhost:" + port + "/axonLra/after/" + encodedTargetId),
+                new URI("http://localhost:" + port + "/axonLra/status/" + encodedTargetId)
                 );
-        return uri1;
+        return recoveryUri;
     }
 }

@@ -13,7 +13,6 @@ import org.springframework.web.bind.annotation.*;
 import javax.ws.rs.core.Response;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
-import java.util.concurrent.TimeUnit;
 
 @RestController
 @Slf4j
@@ -29,58 +28,47 @@ public class AxonLraEndpointsSpring {
     @Autowired
     private IncomingLraContextsStore incomingLraContextsStore;
 
-    @PutMapping("/complete?id=")
-    public Response complete(@RequestParam(value = "id") String id) throws UnsupportedEncodingException {
+    @PutMapping("/complete/{id}")
+    public Response complete(@PathVariable String id) throws UnsupportedEncodingException {
         String realId = URLDecoder.decode( id, "UTF-8" );
         log.info("in the AXONLRA endpoint function complete with id: {}", id);
-        lraContextsStore.getContextForAggregate(realId).setStatus(ParticipantStatus.Completing);
-        boolean result = commandGateway.sendAndWait(new AxonLraCompleteCommand(realId), 2, TimeUnit.MINUTES);
-        log.info("result of AxonLraCompleteCommand from aggregate is: {}", result);
-        if(result){
-            lraContextsStore.getContextForAggregate(realId).setStatus(ParticipantStatus.Completed);
-        }else {
-            lraContextsStore.getContextForAggregate(realId).setStatus(ParticipantStatus.FailedToComplete);
-        }
-        return Response.ok(lraContextsStore.getContextForAggregate(realId).getStatus()).build();
+        return processResult(commandGateway.sendAndWait(new AxonLraCompleteCommand(realId)), EndpointType.COMPLETE);
     }
 
-    @PutMapping("/compensate?id=")
-    public Response compensate(@RequestParam(value = "id") String id) throws UnsupportedEncodingException {
+    @PutMapping("/compensate/{id}")
+    public Response compensate(@PathVariable String id) throws UnsupportedEncodingException {
         String realId = URLDecoder.decode( id, "UTF-8" );
         log.info("in the AXONLRA endpoint function compensate with id: {}", realId);
-        lraContextsStore.getContextForAggregate(realId).setStatus(ParticipantStatus.Compensating);
-        boolean result = commandGateway.sendAndWait(new AxonLraCompensateCommand(id), 2, TimeUnit.MINUTES);
-        log.info("result of AxonLraCompensateCommand from aggregate is: {}", result);
-        if(result){
-            lraContextsStore.getContextForAggregate(realId).setStatus(ParticipantStatus.Compensated);
-        }else {
-            lraContextsStore.getContextForAggregate(realId).setStatus(ParticipantStatus.FailedToCompensate);
-        }
-        return Response.ok(lraContextsStore.getContextForAggregate(realId).getStatus()).build();
+        return processResult(commandGateway.sendAndWait(new AxonLraCompensateCommand(id)),EndpointType.COMPENSATE);
     }
 
-    @PutMapping("/leave?id=")
-    public void leave(@RequestParam(value = "id") String id) {
-        log.info("in the AXONLRA endpoint function leave with id: {}", id);
-    }
-
-    @DeleteMapping("/forget?id=")
-    public void forget(@RequestParam(value = "id") String id) {
-        log.info("in the AXONLRA endpoint function forget with id: {}", id);
-    }
-
-    @GetMapping("/status?id=")
-    public Response status(@RequestParam(value = "id") String id) throws UnsupportedEncodingException {
+    @GetMapping("/status/{id}")
+    public void status(@PathVariable String id) throws UnsupportedEncodingException {
         String realId = URLDecoder.decode( id, "UTF-8" );
         log.info("in the AXONLRA endpoint function status with id: {}", id);
-        return Response.ok().entity(lraContextsStore.getContextForAggregate(realId).getStatus()).build();
+        log.warn("Not implemented");
     }
 
-//    @GetMapping("/after/{id}")
-//    public Response after(@PathVariable String id) {
-//        log.info("in the AXONLRA endpoint function after with id: {}", id);
-//        return Response.ok().entity(status).build();
-//    }
+    @DeleteMapping("/forget/{id}")
+    public void forget(@PathVariable String id) throws UnsupportedEncodingException {
+        String realId = URLDecoder.decode( id, "UTF-8" );
+        log.info("in the AXONLRA endpoint function forget with id: {}", id);
+        log.warn("Not implemented");
+    }
+
+    @PutMapping("/after/{id}")
+    public void after(@PathVariable String id) throws UnsupportedEncodingException {
+        String realId = URLDecoder.decode( id, "UTF-8" );
+        log.info("in the AXONLRA endpoint function after with id: {}", id);
+        log.warn("Not implemented");
+    }
+
+    @PutMapping("/leave/{id}")
+    public void leave(@PathVariable String id) throws UnsupportedEncodingException {
+        String realId = URLDecoder.decode( id, "UTF-8" );
+        log.info("in the AXONLRA endpoint function leave with id: {}", id);
+        log.warn("Not implemented");
+    }
 
     @GetMapping("/incomingLraContext")
     public Response incomingLraContext() {
@@ -90,6 +78,21 @@ public class AxonLraEndpointsSpring {
     @GetMapping("/actualLraContext")
     public Response actualLraContext() {
         return Response.ok().entity(lraContextsStore.getAllContext().entrySet()).build();
+    }
+
+    private Response processResult(Object result, EndpointType type) {
+        Response.ResponseBuilder builder = Response.status(Response.Status.OK);
+        if (result==null) {
+            // void return type and no exception was thrown
+            builder.entity(type.equals(EndpointType.COMPLETE) ? ParticipantStatus.Completed.name() : ParticipantStatus.Compensated.name());
+            return builder.build();
+        }else{
+            throw new IllegalStateException("not implemented yet");
+        }
+    }
+
+    private enum EndpointType{
+        COMPENSATE, COMPLETE, STATUS, FORGET, AFTER, LEAVE
     }
 
 }

@@ -4,6 +4,7 @@ import io.narayana.lra.client.NarayanaLRAClient;
 import org.axonframework.commandhandling.CommandBus;
 import org.axonframework.config.EventProcessingConfigurer;
 import org.axonframework.eventhandling.EventBus;
+import org.mkralik.learning.lra.axon.interceptors.command.CommandDispatchInterceptor;
 import org.mkralik.learning.lra.axon.interceptors.event.EventDispatchInterceptor;
 import org.mkralik.learning.lra.axon.interceptors.event.EventHandlerInterceptor;
 import org.mkralik.learning.lra.axon.store.LraContextsStore;
@@ -13,17 +14,16 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import java.net.URI;
 import java.net.URISyntaxException;
 
 @Configuration
 public class AxonLraConfiguration {
 
-//    @Autowired
-//    public void registerCommandInterceptor(CommandBus commandBus, CommandDispatchInterceptor interceptor) {
-//        commandBus.registerDispatchInterceptor(interceptor);
-//    }
-//
+    @Autowired
+    public void registerCommandInterceptor(CommandBus commandBus, CommandDispatchInterceptor interceptor) {
+        commandBus.registerDispatchInterceptor(interceptor);
+    }
+
     @Autowired
     public void registerCommandInterceptor(CommandBus commandBus, CommandHandlerInterceptor interceptor) {
         commandBus.registerHandlerInterceptor(interceptor);
@@ -43,7 +43,6 @@ public class AxonLraConfiguration {
 
     @Bean
     public NarayanaLRAClient narayanaLRAClient() throws URISyntaxException {
-        NarayanaLRAClient.setDefaultCoordinatorEndpoint(new URI("http://localhost:8080"));
         return new NarayanaLRAClient();
     }
 
