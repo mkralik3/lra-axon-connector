@@ -26,6 +26,8 @@ public class IncomingLraContextsStore {
     }
 
     /**
+     * Get waiting incoming context
+     * @param aggregateId particular target aggregate identifier
      * @return lra context for aggregate if exist, otherwise null
      */
     public URI getIncomingContextForAggregate(String aggregateId){

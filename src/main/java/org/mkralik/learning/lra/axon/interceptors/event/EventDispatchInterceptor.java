@@ -4,7 +4,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.axonframework.eventhandling.EventMessage;
 import org.axonframework.eventhandling.GenericDomainEventMessage;
 import org.axonframework.messaging.MessageDispatchInterceptor;
-import org.axonframework.messaging.MetaData;
 import org.eclipse.microprofile.lra.annotation.ws.rs.LRA;
 import org.mkralik.learning.lra.axon.store.IncomingLraContextsStore;
 import org.springframework.beans.factory.annotation.Autowired;

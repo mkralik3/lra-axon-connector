@@ -7,7 +7,6 @@ import org.axonframework.eventhandling.EventBus;
 import org.mkralik.learning.lra.axon.interceptors.command.CommandDispatchInterceptor;
 import org.mkralik.learning.lra.axon.interceptors.event.EventDispatchInterceptor;
 import org.mkralik.learning.lra.axon.interceptors.event.EventHandlerInterceptor;
-import org.mkralik.learning.lra.axon.store.LraContextsStore;
 import org.mkralik.learning.lra.axon.interceptors.command.CommandHandlerInterceptor;
 import org.mkralik.learning.lra.axon.store.IncomingLraContextsStore;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -44,11 +43,6 @@ public class AxonLraConfiguration {
     @Bean
     public NarayanaLRAClient narayanaLRAClient() throws URISyntaxException {
         return new NarayanaLRAClient();
-    }
-
-    @Bean
-    public LraContextsStore lraContextsStore() {
-        return new LraContextsStore();
     }
 
     @Bean

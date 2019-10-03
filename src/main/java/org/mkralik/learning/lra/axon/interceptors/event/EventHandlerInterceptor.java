@@ -7,11 +7,8 @@ import org.axonframework.eventhandling.GenericDomainEventMessage;
 import org.axonframework.messaging.InterceptorChain;
 import org.axonframework.messaging.MessageHandlerInterceptor;
 import org.axonframework.messaging.unitofwork.UnitOfWork;
-import org.eclipse.microprofile.lra.annotation.ParticipantStatus;
 import org.eclipse.microprofile.lra.annotation.ws.rs.LRA;
-import org.mkralik.learning.lra.axon.store.AxonLraContextInfo;
 import org.mkralik.learning.lra.axon.store.IncomingLraContextsStore;
-import org.mkralik.learning.lra.axon.store.LraContextsStore;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -31,9 +28,6 @@ public class EventHandlerInterceptor implements MessageHandlerInterceptor<EventM
     @Autowired
     private IncomingLraContextsStore incomingContextsStore;
 
-    @Autowired
-    private LraContextsStore lraContextsStore;
-
     @Value("${server.port}")
     int port;
 
@@ -45,16 +39,12 @@ public class EventHandlerInterceptor implements MessageHandlerInterceptor<EventM
         URI lraContextFromMetadata = (URI) event.getMetaData().get(LRA.LRA_HTTP_CONTEXT_HEADER);
 
         if(lraContextFromMetadata!=null){
-            // handled event contains LRA context but the event can be from other parts
             URI waitingContextForAggregate = incomingContextsStore.getIncomingContextForAggregate(aggregateID);
-            // waiting any LRA context for joining and if yes, is it for this event
+            // handled event contains LRA context but the event can be from other parts or can be an event from the event store which was already processed
+            // if any context waiting for this aggregate the event has to be fired from the Aggregate constructor and need to join to LRA.
             if(waitingContextForAggregate!=null && waitingContextForAggregate.equals(lraContextFromMetadata)){
                 URI recoveryParticipantUri = joinLraForTargetAggregate(lraContextFromMetadata, aggregateID);
                 incomingContextsStore.deleteIncomingContextForAggregate(event.getAggregateIdentifier());
-
-                //TODO will be deleted
-                lraContextsStore.saveContextForAggregate(aggregateID ,
-                        new AxonLraContextInfo(waitingContextForAggregate, recoveryParticipantUri, ParticipantStatus.Active));
             }
         }
         return interceptorChain.proceed();
