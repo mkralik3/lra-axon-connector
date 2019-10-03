@@ -2,21 +2,23 @@ package org.mkralik.learning.lra.axon.rest;
 
 import lombok.extern.slf4j.Slf4j;
 import org.axonframework.commandhandling.gateway.CommandGateway;
-import org.eclipse.microprofile.lra.annotation.ParticipantStatus;
+import org.eclipse.microprofile.lra.annotation.*;
 import org.mkralik.learning.lra.axon.api.command.AxonLraCompensateCommand;
 import org.mkralik.learning.lra.axon.api.command.AxonLraCompleteCommand;
+import org.mkralik.learning.lra.axon.api.command.AxonLraStatusCommand;
 import org.mkralik.learning.lra.axon.store.IncomingLraContextsStore;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.stereotype.Service;
 
+import javax.ws.rs.*;
 import javax.ws.rs.core.Response;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 
-@RestController
+@Service
 @Slf4j
-@RequestMapping("/axonLra")
-public class AxonLraEndpointsSpring {
+@Path("/axonLra")
+public class AxonLraEndpoints {
 
     @Autowired
     private CommandGateway commandGateway;
@@ -24,49 +26,61 @@ public class AxonLraEndpointsSpring {
     @Autowired
     private IncomingLraContextsStore incomingLraContextsStore;
 
-    @PutMapping("/complete/{id}")
-    public Response complete(@PathVariable String id) throws UnsupportedEncodingException {
+    @PUT
+    @Path("/complete/{id}")
+    @Complete
+    public Response complete(@PathParam("id")  String id) throws UnsupportedEncodingException {
         String realId = URLDecoder.decode( id, "UTF-8" );
         log.info("in the AXON LRA connector COMPLETE endpoint id: {}", id);
         return processResult(commandGateway.sendAndWait(new AxonLraCompleteCommand(realId)), EndpointType.COMPLETE);
     }
 
-    @PutMapping("/compensate/{id}")
-    public Response compensate(@PathVariable String id) throws UnsupportedEncodingException {
+    @PUT
+    @Path("/compensate/{id}")
+    @Compensate
+    public Response compensate(@PathParam("id") String id) throws UnsupportedEncodingException {
         String realId = URLDecoder.decode( id, "UTF-8" );
         log.info("in the AXON LRA connector COMPENSATE endpoint id: {}", id);
         return processResult(commandGateway.sendAndWait(new AxonLraCompensateCommand(id)),EndpointType.COMPENSATE);
     }
 
-    @GetMapping("/status/{id}")
-    public Response status(@PathVariable String id) throws UnsupportedEncodingException {
+    @GET
+    @Path("/status/{id}")
+    @Status
+    public Response status(@PathParam("id")  String id) throws UnsupportedEncodingException {
         String realId = URLDecoder.decode( id, "UTF-8" );
         log.info("in the AXON LRA connector STATUS endpoint id: {}", id);
-        return processResult(commandGateway.sendAndWait(new AxonLraCompensateCommand(id)), EndpointType.STATUS);
+        return processResult(commandGateway.sendAndWait(new AxonLraStatusCommand(id)), EndpointType.STATUS);
     }
 
-    @DeleteMapping("/forget/{id}")
-    public void forget(@PathVariable String id) throws UnsupportedEncodingException {
+    @DELETE
+    @Path("/forget/{id}")
+    @Forget
+    public void forget(@PathParam("id")  String id) throws UnsupportedEncodingException {
         String realId = URLDecoder.decode( id, "UTF-8" );
         log.info("in the AXON LRA connector FORGET endpoint id: {}", id);
         log.warn("Not implemented");
     }
 
-    @PutMapping("/after/{id}")
-    public void after(@PathVariable String id) throws UnsupportedEncodingException {
+    @PUT
+    @Path("/after/{id}")
+    @AfterLRA
+    public void after(@PathParam("id")  String id) throws UnsupportedEncodingException {
         String realId = URLDecoder.decode( id, "UTF-8" );
         log.info("in the AXON LRA connector AFTER endpoint id: {}", id);
         log.warn("Not implemented");
     }
 
-    @PutMapping("/leave/{id}")
-    public void leave(@PathVariable String id) throws UnsupportedEncodingException {
+    @PUT
+    @Path("/leave/{id}")
+    public void leave(@PathParam("id")  String id) throws UnsupportedEncodingException {
         String realId = URLDecoder.decode( id, "UTF-8" );
         log.info("in the AXON LRA connector AFTER endpoint id: {}", id);
         log.warn("Not implemented");
     }
 
-    @GetMapping("/incomingLraContext")
+    @GET
+    @Path("/incomingLraContext")
     public Response incomingLraContext() {
         return Response.ok().entity(incomingLraContextsStore.getAllIncomingContext().entrySet()).build();
     }
