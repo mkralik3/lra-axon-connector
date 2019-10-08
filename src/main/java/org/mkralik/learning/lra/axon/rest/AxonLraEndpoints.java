@@ -37,7 +37,7 @@ public class AxonLraEndpoints {
     public Response compensate(@PathParam("aggregateId") String aggregateId) throws UnsupportedEncodingException {
         String realId = URLDecoder.decode( aggregateId, "UTF-8" );
         log.info("in the AXON LRA connector COMPENSATE endpoint id: {}", realId);
-        return processResult(commandGateway.sendAndWait(new LRACompensateCommand(realId)),EndpointType.COMPENSATE);
+        return processResult(commandGateway.sendAndWait(new LRACompensateCommand(realId)), EndpointType.COMPENSATE);
     }
 
     @GET
@@ -83,19 +83,28 @@ public class AxonLraEndpoints {
 
     private Response processResult(Object result, EndpointType type) {
         Response.ResponseBuilder builder = Response.status(Response.Status.OK);
-        if (result==null) {
-            // void return type and no exception was thrown
-            builder.entity(type.equals(EndpointType.COMPLETE) ? ParticipantStatus.Completed.name() : ParticipantStatus.Compensated.name());
-            return builder.build();
-        } else if(result instanceof ParticipantStatus){
+        if (result instanceof Response) {
+            return (Response) result;
+        }else if (result==null) {
+            // method returns `null` or nothing (void)
+            switch (type) {
+                case COMPLETE:
+                    return builder.entity(ParticipantStatus.Completed.name()).build();
+                case COMPENSATE:
+                    return builder.entity(ParticipantStatus.Compensated.name()).build();
+                case STATUS:
+                    throw new IllegalStateException("Status method cannot return null or void");
+                default:
+                    //afterLra, forget,leave
+                    return builder.build();
+            }
+        }else if(result instanceof ParticipantStatus){
             ParticipantStatus status = (ParticipantStatus) result;
             if (status == ParticipantStatus.Compensating || status == ParticipantStatus.Completing) {
                 return builder.status(Response.Status.ACCEPTED).build();
             } else {
                 builder.entity(status.name());
             }
-        } else if (result instanceof Response) {
-            return (Response) result;
         } else{
             throw new IllegalStateException("not implemented yet");
         }
