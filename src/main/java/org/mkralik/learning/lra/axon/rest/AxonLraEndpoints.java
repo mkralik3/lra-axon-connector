@@ -8,19 +8,19 @@ import org.mkralik.learning.lra.axon.store.AggregateTypeInfo;
 import org.mkralik.learning.lra.axon.store.AggregateTypeInfoStore;
 import org.mkralik.learning.lra.axon.store.IncomingLraContextsStore;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
 
-import javax.ws.rs.*;
-import javax.ws.rs.core.Response;
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URLDecoder;
 import java.util.Map;
 import java.util.Set;
 
-@Service
 @Slf4j
-@Path("/axonLra")
+@RestController
+@RequestMapping("/axonLra")
 public class AxonLraEndpoints {
 
     @Autowired
@@ -32,97 +32,89 @@ public class AxonLraEndpoints {
     @Autowired
     private AggregateTypeInfoStore aggregateTypeInfoStore;
 
-    @PUT
-    @Path("/complete/{aggregateId}")
-    public Response complete(@PathParam("aggregateId")  String aggregateId) throws UnsupportedEncodingException {
+    @PutMapping("/complete/{aggregateId}")
+    public ResponseEntity complete(@PathVariable("aggregateId")  String aggregateId) throws UnsupportedEncodingException {
         String realId = URLDecoder.decode( aggregateId, "UTF-8" );
         log.info("in the AXON LRA connector COMPLETE endpoint id: {}", realId);
         return processResult(commandGateway.sendAndWait(new LRACompleteCommand(realId)), EndpointType.COMPLETE);
     }
 
-    @PUT
-    @Path("/compensate/{aggregateId}")
-    public Response compensate(@PathParam("aggregateId") String aggregateId) throws UnsupportedEncodingException {
+    @PutMapping("/compensate/{aggregateId}")
+    public ResponseEntity compensate(@PathVariable("aggregateId") String aggregateId) throws UnsupportedEncodingException {
         String realId = URLDecoder.decode( aggregateId, "UTF-8" );
         log.info("in the AXON LRA connector COMPENSATE endpoint id: {}", realId);
         return processResult(commandGateway.sendAndWait(new LRACompensateCommand(realId)), EndpointType.COMPENSATE);
     }
 
-    @GET
-    @Path("/status/{aggregateId}")
-    public Response status(@PathParam("aggregateId")  String aggregateId) throws UnsupportedEncodingException {
+    @GetMapping("/status/{aggregateId}")
+    public ResponseEntity status(@PathVariable("aggregateId")  String aggregateId) throws UnsupportedEncodingException {
         String realId = URLDecoder.decode( aggregateId, "UTF-8" );
         log.info("in the AXON LRA connector STATUS endpoint id: {}", realId);
         return processResult(commandGateway.sendAndWait(new LRAStatusCommand(realId)), EndpointType.STATUS);
     }
 
-    @DELETE
-    @Path("/forget/{aggregateId}")
-    public void forget(@PathParam("aggregateId")  String aggregateId) throws UnsupportedEncodingException {
+    @DeleteMapping("/forget/{aggregateId}")
+    public void forget(@PathVariable("aggregateId")  String aggregateId) throws UnsupportedEncodingException {
         String realId = URLDecoder.decode( aggregateId, "UTF-8" );
         log.info("in the AXON LRA connector FORGET endpoint id: {}", realId);
         commandGateway.sendAndWait(new LRAForgetCommand(realId));
         log.warn("Not implemented");
     }
 
-    @PUT
-    @Path("/after/{aggregateId}")
-    public void after(@PathParam("aggregateId")  String aggregateId) throws UnsupportedEncodingException {
+    @PutMapping("/after/{aggregateId}")
+    public void after(@PathVariable("aggregateId")  String aggregateId) throws UnsupportedEncodingException {
         String realId = URLDecoder.decode( aggregateId, "UTF-8" );
         log.info("in the AXON LRA connector AFTER endpoint id: {}", realId);
         commandGateway.sendAndWait(new LRAAfterCommand(realId));
         log.warn("Not implemented");
     }
 
-    @PUT
-    @Path("/leave/{aggregateId}")
-    public void leave(@PathParam("aggregateId")  String aggregateId) throws UnsupportedEncodingException {
+    @PutMapping("/leave/{aggregateId}")
+    public void leave(@PathVariable("aggregateId")  String aggregateId) throws UnsupportedEncodingException {
         String realId = URLDecoder.decode( aggregateId, "UTF-8" );
         log.info("in the AXON LRA connector LEAVE endpoint id: {}", realId);
         commandGateway.sendAndWait(new LRALeaveCommand(realId));
         log.warn("Not implemented");
     }
 
-    @GET
-    @Path("/incomingLraContext")
+    @GetMapping("/incomingLraContext")
     public Set<Map.Entry<String, URI>> incomingLraContext() {
         return incomingLraContextsStore.getAllIncomingContext().entrySet();
     }
 
-    @GET
-    @Path("/aggregateInfo")
+    @GetMapping("/aggregateInfo")
     public Set<Map.Entry<Class<?>, AggregateTypeInfo>> aggregatesInfo() {
         return aggregateTypeInfoStore.getAllAggregatesInfo().entrySet();
     }
 
-    private Response processResult(Object result, EndpointType type) {
-        Response.ResponseBuilder builder = Response.status(Response.Status.OK);
-        if (result instanceof Response) {
-            return (Response) result;
-        }else if (result==null) {
+    private ResponseEntity processResult(Object result, EndpointType type) {
+//        Response.ResponseBuilder builder = Response.status(Response.Status.OK);
+//        if (result instanceof Response) {
+//            return (Response) result;
+//        }else
+          if (result==null) {
             // method returns `null` or nothing (void)
             switch (type) {
                 case COMPLETE:
-                    return builder.entity(ParticipantStatus.Completed.name()).build();
+                    return ResponseEntity.ok(ParticipantStatus.Completed.name());
                 case COMPENSATE:
-                    return builder.entity(ParticipantStatus.Compensated.name()).build();
+                    return ResponseEntity.ok(ParticipantStatus.Compensated.name());
                 case STATUS:
                     throw new IllegalStateException("Status method cannot return null or void");
                 default:
                     //afterLra, forget,leave
-                    return builder.build();
+                    return ResponseEntity.ok(null);
             }
         }else if(result instanceof ParticipantStatus){
             ParticipantStatus status = (ParticipantStatus) result;
             if (status == ParticipantStatus.Compensating || status == ParticipantStatus.Completing) {
-                return builder.status(Response.Status.ACCEPTED).build();
+                return new ResponseEntity<>(HttpStatus.ACCEPTED);
             } else {
-                builder.entity(status.name());
+                return ResponseEntity.ok(status.name());
             }
         } else{
             throw new IllegalStateException("not implemented yet");
         }
-        return builder.build();
     }
 
     private enum EndpointType{
