@@ -4,7 +4,7 @@ import lombok.Value;
 import org.axonframework.modelling.command.TargetAggregateIdentifier;
 
 @Value
-public class AxonLraCompensateCommand {
+public class LRAAfterCommand {
     @TargetAggregateIdentifier
     String id;
 }

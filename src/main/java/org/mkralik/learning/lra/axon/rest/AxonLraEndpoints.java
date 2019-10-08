@@ -25,53 +25,53 @@ public class AxonLraEndpoints {
     private IncomingLraContextsStore incomingLraContextsStore;
 
     @PUT
-    @Path("/complete/{id}")
-    public Response complete(@PathParam("id")  String id) throws UnsupportedEncodingException {
-        String realId = URLDecoder.decode( id, "UTF-8" );
-        log.info("in the AXON LRA connector COMPLETE endpoint id: {}", id);
-        return processResult(commandGateway.sendAndWait(new LraCompleteCommand(realId)), EndpointType.COMPLETE);
+    @Path("/complete/{aggregateId}")
+    public Response complete(@PathParam("aggregateId")  String aggregateId) throws UnsupportedEncodingException {
+        String realId = URLDecoder.decode( aggregateId, "UTF-8" );
+        log.info("in the AXON LRA connector COMPLETE endpoint id: {}", realId);
+        return processResult(commandGateway.sendAndWait(new LRACompleteCommand(realId)), EndpointType.COMPLETE);
     }
 
     @PUT
-    @Path("/compensate/{id}")
-    public Response compensate(@PathParam("id") String id) throws UnsupportedEncodingException {
-        String realId = URLDecoder.decode( id, "UTF-8" );
-        log.info("in the AXON LRA connector COMPENSATE endpoint id: {}", id);
-        return processResult(commandGateway.sendAndWait(new LraCompensateCommand(id)),EndpointType.COMPENSATE);
+    @Path("/compensate/{aggregateId}")
+    public Response compensate(@PathParam("aggregateId") String aggregateId) throws UnsupportedEncodingException {
+        String realId = URLDecoder.decode( aggregateId, "UTF-8" );
+        log.info("in the AXON LRA connector COMPENSATE endpoint id: {}", realId);
+        return processResult(commandGateway.sendAndWait(new LRACompensateCommand(realId)),EndpointType.COMPENSATE);
     }
 
     @GET
-    @Path("/status/{id}")
-    public Response status(@PathParam("id")  String id) throws UnsupportedEncodingException {
-        String realId = URLDecoder.decode( id, "UTF-8" );
-        log.info("in the AXON LRA connector STATUS endpoint id: {}", id);
-        return processResult(commandGateway.sendAndWait(new LraStatusCommand(id)), EndpointType.STATUS);
+    @Path("/status/{aggregateId}")
+    public Response status(@PathParam("aggregateId")  String aggregateId) throws UnsupportedEncodingException {
+        String realId = URLDecoder.decode( aggregateId, "UTF-8" );
+        log.info("in the AXON LRA connector STATUS endpoint id: {}", realId);
+        return processResult(commandGateway.sendAndWait(new LRAStatusCommand(realId)), EndpointType.STATUS);
     }
 
     @DELETE
-    @Path("/forget/{id}")
-    public void forget(@PathParam("id")  String id) throws UnsupportedEncodingException {
-        String realId = URLDecoder.decode( id, "UTF-8" );
-        log.info("in the AXON LRA connector FORGET endpoint id: {}", id);
-        commandGateway.sendAndWait(new LraForgetCommand(id));
+    @Path("/forget/{aggregateId}")
+    public void forget(@PathParam("aggregateId")  String aggregateId) throws UnsupportedEncodingException {
+        String realId = URLDecoder.decode( aggregateId, "UTF-8" );
+        log.info("in the AXON LRA connector FORGET endpoint id: {}", realId);
+        commandGateway.sendAndWait(new LRAForgetCommand(realId));
         log.warn("Not implemented");
     }
 
     @PUT
-    @Path("/after/{id}")
-    public void after(@PathParam("id")  String id) throws UnsupportedEncodingException {
-        String realId = URLDecoder.decode( id, "UTF-8" );
-        log.info("in the AXON LRA connector AFTER endpoint id: {}", id);
-        commandGateway.sendAndWait(new LraAfterCommand(id));
+    @Path("/after/{aggregateId}")
+    public void after(@PathParam("aggregateId")  String aggregateId) throws UnsupportedEncodingException {
+        String realId = URLDecoder.decode( aggregateId, "UTF-8" );
+        log.info("in the AXON LRA connector AFTER endpoint id: {}", realId);
+        commandGateway.sendAndWait(new LRAAfterCommand(realId));
         log.warn("Not implemented");
     }
 
     @PUT
-    @Path("/leave/{id}")
-    public void leave(@PathParam("id")  String id) throws UnsupportedEncodingException {
-        String realId = URLDecoder.decode( id, "UTF-8" );
-        log.info("in the AXON LRA connector AFTER endpoint id: {}", id);
-        commandGateway.sendAndWait(new LraLeaveCommand(id));
+    @Path("/leave/{aggregateId}")
+    public void leave(@PathParam("aggregateId")  String aggregateId) throws UnsupportedEncodingException {
+        String realId = URLDecoder.decode( aggregateId, "UTF-8" );
+        log.info("in the AXON LRA connector LEAVE endpoint id: {}", realId);
+        commandGateway.sendAndWait(new LRALeaveCommand(realId));
         log.warn("Not implemented");
     }
 
