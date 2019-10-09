@@ -12,7 +12,11 @@ import org.springframework.stereotype.Service;
 import javax.ws.rs.*;
 import javax.ws.rs.core.Response;
 import java.io.UnsupportedEncodingException;
+import java.net.URI;
 import java.net.URLDecoder;
+
+import static org.eclipse.microprofile.lra.annotation.ws.rs.LRA.LRA_HTTP_CONTEXT_HEADER;
+import static org.eclipse.microprofile.lra.annotation.ws.rs.LRA.LRA_HTTP_ENDED_CONTEXT_HEADER;
 
 /**
  * This class is prepared in case you want to use this extension with JAX-RS SPRING-BOOT application instead of
@@ -38,53 +42,56 @@ public class AxonLraEndpointsJaxRS {
 
     @PUT
     @Path("/complete/{aggregateId}")
-    public Response complete(@PathParam("aggregateId")  String aggregateId) throws UnsupportedEncodingException {
-        String realId = URLDecoder.decode( aggregateId, "UTF-8" );
-        log.info("in the AXON LRA connector COMPLETE endpoint id: {}", realId);
-        return processResult(commandGateway.sendAndWait(new LRACompleteCommand(realId)), EndpointType.COMPLETE);
+    public Response complete(@PathParam("aggregateId")  String aggregateId, @HeaderParam(LRA_HTTP_CONTEXT_HEADER) URI lraId) throws UnsupportedEncodingException {
+        String realAggregateId = URLDecoder.decode(aggregateId, "UTF-8");
+        log.info("in the AXON LRA connector COMPLETE endpoint id: {}", realAggregateId);
+        Object result = commandGateway.sendAndWait(new LRACompleteCommand(realAggregateId, lraId));
+        return processResult(result, realAggregateId, EndpointType.COMPLETE);
     }
 
     @PUT
     @Path("/compensate/{aggregateId}")
-    public Response compensate(@PathParam("aggregateId") String aggregateId) throws UnsupportedEncodingException {
-        String realId = URLDecoder.decode( aggregateId, "UTF-8" );
-        log.info("in the AXON LRA connector COMPENSATE endpoint id: {}", realId);
-        return processResult(commandGateway.sendAndWait(new LRACompensateCommand(realId)), EndpointType.COMPENSATE);
+    public Response compensate(@PathParam("aggregateId") String aggregateId, @HeaderParam(LRA_HTTP_CONTEXT_HEADER) URI lraId) throws UnsupportedEncodingException {
+        String realAggregateId = URLDecoder.decode(aggregateId, "UTF-8");
+        log.info("in the AXON LRA connector COMPENSATE endpoint id: {}", realAggregateId);
+        Object result = commandGateway.sendAndWait(new LRACompensateCommand(realAggregateId, lraId));
+        return processResult(result, realAggregateId, EndpointType.COMPENSATE);
     }
 
     @GET
     @Path("/status/{aggregateId}")
-    public Response status(@PathParam("aggregateId")  String aggregateId) throws UnsupportedEncodingException {
-        String realId = URLDecoder.decode( aggregateId, "UTF-8" );
-        log.info("in the AXON LRA connector STATUS endpoint id: {}", realId);
-        return processResult(commandGateway.sendAndWait(new LRAStatusCommand(realId)), EndpointType.STATUS);
+    public Response status(@PathParam("aggregateId")  String aggregateId, @HeaderParam(LRA_HTTP_CONTEXT_HEADER) URI lraId) throws UnsupportedEncodingException {
+        String realAggregateId = URLDecoder.decode(aggregateId, "UTF-8");
+        log.info("in the AXON LRA connector STATUS endpoint id: {}", realAggregateId);
+        Object result = commandGateway.sendAndWait(new LRAStatusCommand(realAggregateId, lraId));
+        return processResult(result, realAggregateId, EndpointType.STATUS);
     }
 
     @DELETE
     @Path("/forget/{aggregateId}")
-    public void forget(@PathParam("aggregateId")  String aggregateId) throws UnsupportedEncodingException {
-        String realId = URLDecoder.decode( aggregateId, "UTF-8" );
-        log.info("in the AXON LRA connector FORGET endpoint id: {}", realId);
-        commandGateway.sendAndWait(new LRAForgetCommand(realId));
-        log.warn("Not implemented");
+    public void forget(@PathParam("aggregateId")  String aggregateId, @HeaderParam(LRA_HTTP_CONTEXT_HEADER) URI lraId) throws UnsupportedEncodingException {
+        String realAggregateId = URLDecoder.decode(aggregateId, "UTF-8");
+        log.info("in the AXON LRA connector FORGET endpoint id: {}", realAggregateId);
+        Object result = commandGateway.sendAndWait(new LRAForgetCommand(realAggregateId));
+        log.warn("Not implemented yet");
     }
 
     @PUT
     @Path("/after/{aggregateId}")
-    public void after(@PathParam("aggregateId")  String aggregateId) throws UnsupportedEncodingException {
-        String realId = URLDecoder.decode( aggregateId, "UTF-8" );
-        log.info("in the AXON LRA connector AFTER endpoint id: {}", realId);
-        commandGateway.sendAndWait(new LRAAfterCommand(realId));
-        log.warn("Not implemented");
+    public void after(@PathParam("aggregateId")  String aggregateId, @HeaderParam(LRA_HTTP_ENDED_CONTEXT_HEADER) URI lraEndedId) throws UnsupportedEncodingException {
+        String realAggregateId = URLDecoder.decode(aggregateId, "UTF-8");
+        log.info("in the AXON LRA connector AFTER endpoint id: {}", realAggregateId);
+        Object result = commandGateway.sendAndWait(new LRAAfterCommand(realAggregateId, lraEndedId));
+        log.warn("Not implemented yet");
     }
 
     @PUT
     @Path("/leave/{aggregateId}")
-    public void leave(@PathParam("aggregateId")  String aggregateId) throws UnsupportedEncodingException {
-        String realId = URLDecoder.decode( aggregateId, "UTF-8" );
-        log.info("in the AXON LRA connector LEAVE endpoint id: {}", realId);
-        commandGateway.sendAndWait(new LRALeaveCommand(realId));
-        log.warn("Not implemented");
+    public void leave(@PathParam("aggregateId")  String aggregateId, @HeaderParam(LRA_HTTP_CONTEXT_HEADER) URI lraId) throws UnsupportedEncodingException {
+        String realAggregateId = URLDecoder.decode(aggregateId, "UTF-8");
+        log.info("in the AXON LRA connector LEAVE endpoint id: {}", realAggregateId);
+        Object result = commandGateway.sendAndWait(new LRALeaveCommand(realAggregateId));
+        log.warn("Not implemented yet");
     }
 
     @GET
@@ -101,7 +108,7 @@ public class AxonLraEndpointsJaxRS {
         return Response.ok().entity(aggregateTypeInfoStore.getAllAggregatesInfo().entrySet()).build();
     }
 
-    private Response processResult(Object result, EndpointType type) {
+    private Response processResult(Object result, String aggregateId, EndpointType type) {
         Response.ResponseBuilder builder = Response.status(Response.Status.OK);
         if (result instanceof Response) {
             return (Response) result;

@@ -20,11 +20,9 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.io.UnsupportedEncodingException;
-import java.lang.reflect.Method;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URLEncoder;
-import java.util.Arrays;
 import java.util.List;
 
 @Slf4j
@@ -101,20 +99,6 @@ public class EventHandlerInterceptor implements MessageHandlerInterceptor<EventM
                 "After: {}\n" +
                 "Status: {}\n", compensate, complete, forget, leave, after, status);
         return recoveryUri;
-    }
-
-    /**
-     * Check whether the aggregate class contains a particular command as a parameter in some method.
-     * In other words, whether aggregate class handles a particular command class.
-     */
-    private boolean containsCommand(Class<?> particularCommandClass, String aggregateId) {
-        Aggregate<?> targetAggregate = findTargetAggregate(aggregateId);
-        if (targetAggregate == null) {
-            throw new IllegalStateException("Aggregate with ID " + aggregateId + " does not exist.");
-        }
-        Method[] methods = targetAggregate.rootType().getDeclaredMethods();
-        return Arrays.stream(methods)
-                .anyMatch(method -> Arrays.asList(method.getParameterTypes()).contains(particularCommandClass));
     }
 
     /**
