@@ -3,7 +3,9 @@ package org.mkralik.learning.lra.axon.store;
 import org.springframework.stereotype.Component;
 
 import java.net.URI;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.Map;
 
 @Component
 public class IncomingLraContextsStore {
@@ -34,8 +36,8 @@ public class IncomingLraContextsStore {
         return incomingLraContext.getOrDefault(aggregateId, null);
     }
 
-    public HashMap<String, URI> getAllIncomingContext(){
-        return incomingLraContext;
+    public Map<String, URI> getAllIncomingContext(){
+        return Collections.unmodifiableMap(incomingLraContext);
     }
 
 }

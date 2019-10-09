@@ -4,6 +4,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.axonframework.commandhandling.gateway.CommandGateway;
 import org.eclipse.microprofile.lra.annotation.*;
 import org.mkralik.learning.lra.axon.api.command.*;
+import org.mkralik.learning.lra.axon.store.AggregateTypeInfo;
+import org.mkralik.learning.lra.axon.store.AggregateTypeInfoStore;
 import org.mkralik.learning.lra.axon.store.IncomingLraContextsStore;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -11,7 +13,10 @@ import org.springframework.stereotype.Service;
 import javax.ws.rs.*;
 import javax.ws.rs.core.Response;
 import java.io.UnsupportedEncodingException;
+import java.net.URI;
 import java.net.URLDecoder;
+import java.util.Map;
+import java.util.Set;
 
 @Service
 @Slf4j
@@ -23,6 +28,9 @@ public class AxonLraEndpoints {
 
     @Autowired
     private IncomingLraContextsStore incomingLraContextsStore;
+
+    @Autowired
+    private AggregateTypeInfoStore aggregateTypeInfoStore;
 
     @PUT
     @Path("/complete/{aggregateId}")
@@ -77,8 +85,14 @@ public class AxonLraEndpoints {
 
     @GET
     @Path("/incomingLraContext")
-    public Response incomingLraContext() {
-        return Response.ok().entity(incomingLraContextsStore.getAllIncomingContext().entrySet()).build();
+    public Set<Map.Entry<String, URI>> incomingLraContext() {
+        return incomingLraContextsStore.getAllIncomingContext().entrySet();
+    }
+
+    @GET
+    @Path("/aggregateInfo")
+    public Set<Map.Entry<Class<?>, AggregateTypeInfo>> aggregatesInfo() {
+        return aggregateTypeInfoStore.getAllAggregatesInfo().entrySet();
     }
 
     private Response processResult(Object result, EndpointType type) {

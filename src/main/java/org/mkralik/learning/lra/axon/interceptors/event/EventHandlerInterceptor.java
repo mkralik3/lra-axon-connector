@@ -12,7 +12,8 @@ import org.axonframework.modelling.command.Aggregate;
 import org.axonframework.modelling.command.AggregateNotFoundException;
 import org.axonframework.modelling.command.Repository;
 import org.eclipse.microprofile.lra.annotation.ws.rs.LRA;
-import org.mkralik.learning.lra.axon.api.command.*;
+import org.mkralik.learning.lra.axon.store.AggregateTypeInfo;
+import org.mkralik.learning.lra.axon.store.AggregateTypeInfoStore;
 import org.mkralik.learning.lra.axon.store.IncomingLraContextsStore;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -30,12 +31,14 @@ import java.util.List;
 @Component
 public class EventHandlerInterceptor implements MessageHandlerInterceptor<EventMessage<?>> {
 
-
     @Autowired
     private NarayanaLRAClient lraClient;
 
     @Autowired
     private IncomingLraContextsStore incomingContextsStore;
+
+    @Autowired
+    private AggregateTypeInfoStore aggregateTypeInfoStore;
 
     @Value("${server.port}")
     private int port;
@@ -69,17 +72,23 @@ public class EventHandlerInterceptor implements MessageHandlerInterceptor<EventM
     private URI joinLraForTargetAggregate(URI lraContext, String targetAggregateId) throws UnsupportedEncodingException, URISyntaxException {
         String encodedTargetId = URLEncoder.encode(targetAggregateId, "UTF-8");
 
-        URI compensate = containsCommand(LRACompensateCommand.class, targetAggregateId) ?
+        Aggregate<?> targetAggregate = findTargetAggregate(targetAggregateId);
+        AggregateTypeInfo targetAggregateTypeInfo = aggregateTypeInfoStore.getAggregateTypeInfo(targetAggregate.rootType());
+        if(targetAggregateTypeInfo==null){
+            throw new IllegalStateException("Aggregate type info store doesn't contains class information about aggregate");
+        }
+
+        URI compensate = targetAggregateTypeInfo.getLraCompensate()!=null ?
                 new URI("http://localhost:" + port + "/axonLra/compensate/" + encodedTargetId) : null;
-        URI complete = containsCommand(LRACompleteCommand.class, targetAggregateId) ?
+        URI complete = targetAggregateTypeInfo.getLraComplete()!=null ?
                 new URI("http://localhost:" + port + "/axonLra/complete/" + encodedTargetId) : null;
-        URI forget = containsCommand(LRAForgetCommand.class, targetAggregateId) ?
+        URI forget = targetAggregateTypeInfo.getLraForget()!=null ?
                 new URI("http://localhost:" + port + "/axonLra/forget/" + encodedTargetId) : null;
-        URI leave = containsCommand(LRALeaveCommand.class, targetAggregateId) ?
+        URI leave = targetAggregateTypeInfo.getLraLeave()!=null ?
                 new URI("http://localhost:" + port + "/axonLra/leave/" + encodedTargetId) : null;
-        URI after = containsCommand(LRAAfterCommand.class, targetAggregateId) ?
+        URI after = targetAggregateTypeInfo.getLraAfter()!=null ?
                 new URI("http://localhost:" + port + "/axonLra/after/" + encodedTargetId) : null;
-        URI status = containsCommand(LRAStatusCommand.class, targetAggregateId) ?
+        URI status = targetAggregateTypeInfo.getLraStatus()!=null ?
                 new URI("http://localhost:" + port + "/axonLra/status/" + encodedTargetId) : null;
 
         URI recoveryUri = lraClient.joinLRA(lraContext,
