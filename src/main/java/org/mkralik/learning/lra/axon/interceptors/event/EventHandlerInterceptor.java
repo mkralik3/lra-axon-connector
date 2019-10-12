@@ -2,8 +2,8 @@ package org.mkralik.learning.lra.axon.interceptors.event;
 
 import io.narayana.lra.client.NarayanaLRAClient;
 import lombok.extern.slf4j.Slf4j;
+import org.axonframework.eventhandling.DomainEventMessage;
 import org.axonframework.eventhandling.EventMessage;
-import org.axonframework.eventhandling.GenericDomainEventMessage;
 import org.axonframework.eventsourcing.IncompatibleAggregateException;
 import org.axonframework.messaging.InterceptorChain;
 import org.axonframework.messaging.MessageHandlerInterceptor;
@@ -51,19 +51,25 @@ public class EventHandlerInterceptor implements MessageHandlerInterceptor<EventM
     @Override
     public Object handle(UnitOfWork<? extends EventMessage<?>> unitOfWork,
                          InterceptorChain interceptorChain) throws Exception {
-        GenericDomainEventMessage event = (GenericDomainEventMessage) unitOfWork.getMessage();
-        String aggregateID = event.getAggregateIdentifier();
-        URI lraContextFromMetadata = (URI) event.getMetaData().get(LRA.LRA_HTTP_CONTEXT_HEADER);
+        URI lraContextFromMetadata = (URI) unitOfWork.getMessage().getMetaData().get(LRA.LRA_HTTP_CONTEXT_HEADER);
 
         if (lraContextFromMetadata != null) {
-            URI waitingContextForAggregate = incomingContextsStore.getIncomingContextForAggregate(aggregateID);
-            // handled event contains LRA context but the event can be from other parts or can be an event from the event store which was already processed
-            // if any context waiting for this aggregate the event has to be fired from the Aggregate constructor and need to join to LRA.
+            String aggregateID = ((DomainEventMessage) unitOfWork.getMessage()).getAggregateIdentifier();
             Aggregate<?> targetAggregate = findTargetAggregate(aggregateID);
-            aggregateTypeInfoStore.saveAggregateIdClassIfAbsent(aggregateID, targetAggregate);
+
+            //Save aggregate instance for lra coordinator (cannot be saved after joining because during
+            // the recreation of application state from the event store, the join is not performed again
+            aggregateTypeInfoStore.saveAggregateInstance(aggregateID, targetAggregate);
+
+            //If the event is a result of join LRA command, the LRA context for this aggregate has to be in the incoming context store.
+            // When the application state is being recreated from event store (e.g. after the crash),
+            // there is no waiting context in the incoming context store because the aggregate was already joined to lra and it is not going to call joinLRA again.
+            URI waitingContextForAggregate = incomingContextsStore.getIncomingContextForAggregate(aggregateID);
+            // null means that no LRA context is waiting for this aggregate (targetID)
             if (waitingContextForAggregate != null && waitingContextForAggregate.equals(lraContextFromMetadata)) {
                 URI recoveryParticipantUri = joinLraForTargetAggregate(lraContextFromMetadata, aggregateID);
-                incomingContextsStore.deleteIncomingContextForAggregate(event.getAggregateIdentifier());
+                // the aggregate is joined to the LRA context, the saved LRA context in the incoming context store is not needed anymore.
+                incomingContextsStore.deleteIncomingContextForAggregate(aggregateID);
             }
         }
         return interceptorChain.proceed();
@@ -74,7 +80,7 @@ public class EventHandlerInterceptor implements MessageHandlerInterceptor<EventM
 
         AggregateTypeInfo targetAggregateTypeInfo = aggregateTypeInfoStore.getAggregateTypeInfo(targetAggregateId);
         if(targetAggregateTypeInfo==null){
-            throw new IllegalStateException("Aggregate type info store doesn't contains class information about aggregate");
+            throw new IllegalStateException("Aggregate type info store doesn't contains information about aggregate. The info about aggregate type is saved after start the application.");
         }
 
         URI compensate = targetAggregateTypeInfo.getLraCompensate()!=null ?

@@ -45,7 +45,7 @@ public class CommandHandlerInterceptor implements MessageHandlerInterceptor<Comm
 
             if(incomingCommandLraField.isPresent()){
                 // user specify context explicitly, use it and also add it to metadata
-                log.debug("Context Field is present, the context is override.");
+                log.debug("Context Field is present, the arrived context is overridden.");
                 final URI context = lraContext = (URI) getObjectFromField(command.getPayload(), incomingCommandLraField.get());
                 unitOfWork.transformMessage(event -> event
                         .andMetaData(singletonMap(LRA.LRA_HTTP_CONTEXT_HEADER, context)));

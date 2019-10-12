@@ -23,7 +23,7 @@ public class AggregateTypeInfoStore {
         aggregatesTypes.put(aggregateClass, aggregateInfo);
     }
 
-    public void saveAggregateIdClassIfAbsent(String aggregateId, Aggregate<?> aggregate){
+    public void saveAggregateInstance(String aggregateId, Aggregate<?> aggregate){
         aggregateIdAggregate.putIfAbsent(aggregateId, aggregate);
     }
 

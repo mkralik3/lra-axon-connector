@@ -28,6 +28,10 @@ public class AfterStart {
     @EventListener(ApplicationReadyEvent.class)
     public void doSomethingAfterStartup() {
         System.out.println("++++++++++hello world, I have just started up+++++++");
+        scanAllAggregates();
+    }
+
+    private void scanAllAggregates(){
         Map<String, Object> LRAParticipant = appContext.getBeansWithAnnotation(org.axonframework.spring.stereotype.Aggregate.class);
         for(Object participant : LRAParticipant.values()) {
             AggregateTypeInfo aggregateInfo = new AggregateTypeInfo();
@@ -40,7 +44,7 @@ public class AfterStart {
         }
     }
 
-    public void fillIfMethodFits(AggregateTypeInfo aggregateInfo, Method methodForScaning){
+    private void fillIfMethodFits(AggregateTypeInfo aggregateInfo, Method methodForScaning){
         List<Parameter> methodParametes  = Arrays.asList(methodForScaning.getParameters());
 
         for (Parameter methodParameter : methodParametes) {
