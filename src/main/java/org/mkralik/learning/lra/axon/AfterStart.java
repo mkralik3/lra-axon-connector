@@ -1,6 +1,7 @@
 package org.mkralik.learning.lra.axon;
 
 import lombok.extern.slf4j.Slf4j;
+import org.eclipse.microprofile.lra.annotation.ParticipantStatus;
 import org.mkralik.learning.lra.axon.api.command.*;
 import org.mkralik.learning.lra.axon.rest.AxonLraEndpointsSpring;
 import org.mkralik.learning.lra.axon.store.AggregateTypeInfo;
@@ -9,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.event.EventListener;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 
 import java.lang.reflect.Method;
@@ -79,6 +81,27 @@ public class AfterStart {
     }
 
     private void validateReturnType(Class<?> returnType, AxonLraEndpointsSpring.EndpointType type){
-
+        switch (type){
+            case COMPENSATE:
+            case COMPLETE:
+                if(!(returnType.equals(Void.TYPE) || returnType.equals(Void.class) || returnType.equals(ParticipantStatus.class) || returnType.equals(ResponseEntity.class))){
+                    throw new IllegalStateException("The function which handles LRACompensateCommand or LRACompleteCommand" +
+                            " has to return only VOID, ParticipantStatus or ResponseEntity. The invalid return type is " + returnType);
+                }
+                break;
+            case STATUS:
+                if(!returnType.equals(ParticipantStatus.class)){
+                    throw new IllegalStateException("The function which handles LRAStatusCommand has to return ParticipantStatus enum. The invalid return type is " + returnType);
+                }
+                break;
+            case AFTER:
+                if(!returnType.equals(Void.TYPE)){
+                    throw new IllegalStateException("The function which handles LRAAfterCommand must not return anything (void). The invalid return type is " + returnType);
+                }
+                break;
+            case FORGET:
+            case LEAVE:
+                break;
+        }
     }
 }

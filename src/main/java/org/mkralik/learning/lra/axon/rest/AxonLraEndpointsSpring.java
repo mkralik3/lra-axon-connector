@@ -2,7 +2,6 @@ package org.mkralik.learning.lra.axon.rest;
 
 import lombok.extern.slf4j.Slf4j;
 import org.axonframework.commandhandling.GenericCommandMessage;
-import org.axonframework.commandhandling.gateway.CommandGateway;
 import org.axonframework.modelling.command.Repository;
 import org.eclipse.microprofile.lra.annotation.*;
 import org.mkralik.learning.lra.axon.api.command.*;
@@ -13,7 +12,6 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URLDecoder;
 import java.util.List;
@@ -39,7 +37,7 @@ public class AxonLraEndpointsSpring {
     }
 
     @PutMapping("/complete/{aggregateId}")
-    public ResponseEntity complete(@PathVariable("aggregateId") String aggregateId,
+    ResponseEntity complete(@PathVariable("aggregateId") String aggregateId,
                                    @RequestHeader(LRA_HTTP_CONTEXT_HEADER) URI lraId,
                                    @RequestHeader(value = LRA_HTTP_PARENT_CONTEXT_HEADER, required=false) URI parentLraId) throws Exception {
         String realAggregateId = URLDecoder.decode(aggregateId, "UTF-8");
@@ -49,7 +47,7 @@ public class AxonLraEndpointsSpring {
     }
 
     @PutMapping("/compensate/{aggregateId}")
-    public ResponseEntity compensate(@PathVariable("aggregateId") String aggregateId,
+    ResponseEntity compensate(@PathVariable("aggregateId") String aggregateId,
                                      @RequestHeader(LRA_HTTP_CONTEXT_HEADER) URI lraId,
                                      @RequestHeader(value = LRA_HTTP_PARENT_CONTEXT_HEADER, required=false) URI parentLraId) throws Exception {
         String realAggregateId = URLDecoder.decode(aggregateId, "UTF-8");
@@ -59,7 +57,7 @@ public class AxonLraEndpointsSpring {
     }
 
     @GetMapping("/status/{aggregateId}")
-    public ResponseEntity status(@PathVariable("aggregateId") String aggregateId,
+    ResponseEntity status(@PathVariable("aggregateId") String aggregateId,
                                  @RequestHeader(value = LRA_HTTP_CONTEXT_HEADER, required=false) URI lraId,
                                  @RequestHeader(value = LRA_HTTP_PARENT_CONTEXT_HEADER, required=false) URI parentLraId) throws Exception {
         String realAggregateId = URLDecoder.decode(aggregateId, "UTF-8");
@@ -69,7 +67,7 @@ public class AxonLraEndpointsSpring {
     }
 
     @DeleteMapping("/forget/{aggregateId}")
-    public ResponseEntity forget(@PathVariable("aggregateId") String aggregateId,
+    ResponseEntity forget(@PathVariable("aggregateId") String aggregateId,
                                  @RequestHeader(value = LRA_HTTP_CONTEXT_HEADER, required=false) URI lraId,
                                  @RequestHeader(value = LRA_HTTP_PARENT_CONTEXT_HEADER, required=false) URI parentLraId) throws Exception {
         String realAggregateId = URLDecoder.decode(aggregateId, "UTF-8");
@@ -79,7 +77,7 @@ public class AxonLraEndpointsSpring {
     }
 
     @PutMapping(value = "/after/{aggregateId}",consumes = MediaType.TEXT_PLAIN_VALUE)
-    public ResponseEntity after(@PathVariable("aggregateId") String aggregateId,
+    ResponseEntity after(@PathVariable("aggregateId") String aggregateId,
                                 @RequestHeader(value = LRA_HTTP_ENDED_CONTEXT_HEADER, required=false) URI lraEndedId,
                                 @RequestBody String lraStatus) throws Exception {
         String realAggregateId = URLDecoder.decode(aggregateId, "UTF-8");
@@ -89,20 +87,20 @@ public class AxonLraEndpointsSpring {
     }
 
     @PutMapping("/leave/{aggregateId}")
-    public void leave(@PathVariable("aggregateId") String aggregateId) throws Exception {
+    void leave(@PathVariable("aggregateId") String aggregateId,
+                      @RequestHeader(value = LRA_HTTP_CONTEXT_HEADER, required=false) URI lraId) throws Exception {
         String realAggregateId = URLDecoder.decode(aggregateId, "UTF-8");
         log.debug("AXON LRA connector LEAVE endpoint was called for aggregate id: {}", realAggregateId);
-        Object result = aggregateTypeInfoStore.getAggregate(realAggregateId).handle(GenericCommandMessage.asCommandMessage(new LRALeaveCommand(realAggregateId)));
-        log.warn("Not implemented yet");
+        aggregateTypeInfoStore.getAggregate(realAggregateId).handle(GenericCommandMessage.asCommandMessage(new LRALeaveCommand(realAggregateId, lraId)));
     }
 
     @GetMapping("/incomingLraContext")
-    public ResponseEntity incomingLraContext() {
+    ResponseEntity incomingLraContext() {
         return ResponseEntity.ok(incomingLraContextsStore.getAllIncomingContext().entrySet());
     }
 
     @GetMapping("/aggregateInfo")
-    public ResponseEntity aggregatesInfo() {
+    ResponseEntity aggregatesInfo() {
         return ResponseEntity.ok(aggregateTypeInfoStore.getAllAggregatesInfo().entrySet());
     }
 
@@ -127,6 +125,7 @@ public class AxonLraEndpointsSpring {
             log.debug("PROCESS RESULT: The result type is ResponseEntity with status {}", ((ResponseEntity) result).getStatusCode());
             return (ResponseEntity) result;
         } else {
+            //TODO
             //builder.entity(processThrowable((Throwable) result, type));
             throw new IllegalStateException("The return type is not valid.");
         }

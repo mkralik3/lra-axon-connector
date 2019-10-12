@@ -71,6 +71,14 @@ public class AxonLraEndpointsJaxRS {
         return convertSpringResponseEntityToResponse(springRestEndpoint.after(aggregateId, endedLraId, lraStatus));
     }
 
+    @PUT
+    @Path("/leave/{aggregateId}")
+    public void leave(@PathParam("aggregateId") String aggregateId,
+                      @HeaderParam(LRA_HTTP_CONTEXT_HEADER) URI lraId) throws Exception {
+        log.debug("AXON LRA connector LEAVE JAX-RS endpoint. Redirect to spring based endpoint");
+        springRestEndpoint.leave(aggregateId, lraId);
+    }
+
     @GET
     @Produces("application/json")
     @Path("/incomingLraContext")
