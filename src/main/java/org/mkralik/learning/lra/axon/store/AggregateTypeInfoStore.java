@@ -1,5 +1,6 @@
 package org.mkralik.learning.lra.axon.store;
 
+import org.axonframework.modelling.command.Aggregate;
 import org.springframework.stereotype.Component;
 
 import java.util.Collections;
@@ -11,22 +12,43 @@ public class AggregateTypeInfoStore {
 
     public Map<Class<?>, AggregateTypeInfo> aggregatesTypes;
 
+    public Map<String, Aggregate<?>> aggregateIdAggregate;
+
     public AggregateTypeInfoStore() {
         this.aggregatesTypes =  new HashMap<>();
+        this.aggregateIdAggregate =  new HashMap<>();
     }
 
     public void saveAggregateTypeInfo(Class<?> aggregateClass, AggregateTypeInfo aggregateInfo){
         aggregatesTypes.put(aggregateClass, aggregateInfo);
     }
 
+    public void saveAggregateIdClassIfAbsent(String aggregateId, Aggregate<?> aggregate){
+        aggregateIdAggregate.putIfAbsent(aggregateId, aggregate);
+    }
+
     /**
      * Get aggregate type info according to aggregate class
      */
-    public AggregateTypeInfo getAggregateTypeInfo(Class<?> aggregateClass){
-        return aggregatesTypes.getOrDefault(aggregateClass, null);
+    public AggregateTypeInfo getAggregateTypeInfo(String aggregateId){
+        Aggregate<?> aggregate = aggregateIdAggregate.getOrDefault(aggregateId, null);
+        if(aggregate!=null){
+            Class<?> aggregateClazz = aggregate.rootType();
+            return aggregatesTypes.getOrDefault(aggregateClazz, null);
+        }else{
+            return null;
+        }
+    }
+
+    public Aggregate<?> getAggregate(String aggregateId){
+        return aggregateIdAggregate.getOrDefault(aggregateId, null);
     }
 
     public Map<Class<?>, AggregateTypeInfo> getAllAggregatesInfo(){
         return Collections.unmodifiableMap(aggregatesTypes);
+    }
+
+    public Map<String, Aggregate<?>> getAllAggregates(){
+        return Collections.unmodifiableMap(aggregateIdAggregate);
     }
 }

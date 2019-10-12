@@ -1,6 +1,7 @@
 package org.mkralik.learning.lra.axon.rest;
 
 import lombok.extern.slf4j.Slf4j;
+import org.axonframework.commandhandling.GenericCommandMessage;
 import org.axonframework.commandhandling.gateway.CommandGateway;
 import org.axonframework.modelling.command.Repository;
 import org.eclipse.microprofile.lra.annotation.*;
@@ -42,26 +43,29 @@ public class AxonLraEndpointsSpring {
     }
 
     @PutMapping("/complete/{aggregateId}")
-    public ResponseEntity complete(@PathVariable("aggregateId") String aggregateId, @RequestHeader(LRA_HTTP_CONTEXT_HEADER) URI lraId) throws UnsupportedEncodingException {
+    public ResponseEntity complete(@PathVariable("aggregateId") String aggregateId, @RequestHeader(LRA_HTTP_CONTEXT_HEADER) URI lraId) throws Exception {
         String realAggregateId = URLDecoder.decode(aggregateId, "UTF-8");
         log.info("in the AXON LRA connector COMPLETE endpoint id: {}", realAggregateId);
-        Object result = commandGateway.sendAndWait(new LRACompleteCommand(realAggregateId, lraId));
+        //Object result = commandGateway.sendAndWait(new LRACompleteCommand(realAggregateId, lraId));
+        Object result = aggregateTypeInfoStore.getAggregate(realAggregateId).handle(GenericCommandMessage.asCommandMessage(new LRACompleteCommand(realAggregateId, lraId)));
         return processResult(result, realAggregateId, EndpointType.COMPLETE);
     }
 
     @PutMapping("/compensate/{aggregateId}")
-    public ResponseEntity compensate(@PathVariable("aggregateId") String aggregateId, @RequestHeader(LRA_HTTP_CONTEXT_HEADER) URI lraId) throws UnsupportedEncodingException {
+    public ResponseEntity compensate(@PathVariable("aggregateId") String aggregateId, @RequestHeader(LRA_HTTP_CONTEXT_HEADER) URI lraId) throws Exception {
         String realAggregateId = URLDecoder.decode(aggregateId, "UTF-8");
         log.info("in the AXON LRA connector COMPENSATE endpoint id: {}", realAggregateId);
-        Object result = commandGateway.sendAndWait(new LRACompensateCommand(realAggregateId, lraId));
+        //Object result = commandGateway.sendAndWait(new LRACompensateCommand(realAggregateId, lraId));
+        Object result = aggregateTypeInfoStore.getAggregate(realAggregateId).handle(GenericCommandMessage.asCommandMessage(new LRACompensateCommand(realAggregateId, lraId)));
         return processResult(result, realAggregateId, EndpointType.COMPENSATE);
     }
 
     @GetMapping("/status/{aggregateId}")
-    public ResponseEntity status(@PathVariable("aggregateId") String aggregateId, @RequestHeader(value = LRA_HTTP_CONTEXT_HEADER, required=false) URI lraId) throws UnsupportedEncodingException {
+    public ResponseEntity status(@PathVariable("aggregateId") String aggregateId, @RequestHeader(value = LRA_HTTP_CONTEXT_HEADER, required=false) URI lraId) throws Exception {
         String realAggregateId = URLDecoder.decode(aggregateId, "UTF-8");
         log.info("in the AXON LRA connector STATUS endpoint id: {}", realAggregateId);
-        Object result = commandGateway.sendAndWait(new LRAStatusCommand(realAggregateId, lraId));
+   //     Object result = commandGateway.sendAndWait(new LRAStatusCommand(realAggregateId, lraId));
+        Object result = aggregateTypeInfoStore.getAggregate(realAggregateId).handle(GenericCommandMessage.asCommandMessage(new LRAStatusCommand(realAggregateId, lraId)));
         return processResult(result, realAggregateId, EndpointType.STATUS);
     }
 
@@ -97,6 +101,11 @@ public class AxonLraEndpointsSpring {
     @GetMapping("/aggregateInfo")
     public ResponseEntity aggregatesInfo() {
         return ResponseEntity.ok(aggregateTypeInfoStore.getAllAggregatesInfo().entrySet());
+    }
+
+    @GetMapping("/aggregate")
+    public ResponseEntity aggregates() {
+        return ResponseEntity.ok(aggregateTypeInfoStore.getAllAggregates().entrySet());
     }
 
     private ResponseEntity processResult(Object result, String aggregateId, EndpointType type) {

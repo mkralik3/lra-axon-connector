@@ -59,6 +59,8 @@ public class EventHandlerInterceptor implements MessageHandlerInterceptor<EventM
             URI waitingContextForAggregate = incomingContextsStore.getIncomingContextForAggregate(aggregateID);
             // handled event contains LRA context but the event can be from other parts or can be an event from the event store which was already processed
             // if any context waiting for this aggregate the event has to be fired from the Aggregate constructor and need to join to LRA.
+            Aggregate<?> targetAggregate = findTargetAggregate(aggregateID);
+            aggregateTypeInfoStore.saveAggregateIdClassIfAbsent(aggregateID, targetAggregate);
             if (waitingContextForAggregate != null && waitingContextForAggregate.equals(lraContextFromMetadata)) {
                 URI recoveryParticipantUri = joinLraForTargetAggregate(lraContextFromMetadata, aggregateID);
                 incomingContextsStore.deleteIncomingContextForAggregate(event.getAggregateIdentifier());
@@ -70,8 +72,7 @@ public class EventHandlerInterceptor implements MessageHandlerInterceptor<EventM
     private URI joinLraForTargetAggregate(URI lraContext, String targetAggregateId) throws UnsupportedEncodingException, URISyntaxException {
         String encodedTargetId = URLEncoder.encode(targetAggregateId, "UTF-8");
 
-        Aggregate<?> targetAggregate = findTargetAggregate(targetAggregateId);
-        AggregateTypeInfo targetAggregateTypeInfo = aggregateTypeInfoStore.getAggregateTypeInfo(targetAggregate.rootType());
+        AggregateTypeInfo targetAggregateTypeInfo = aggregateTypeInfoStore.getAggregateTypeInfo(targetAggregateId);
         if(targetAggregateTypeInfo==null){
             throw new IllegalStateException("Aggregate type info store doesn't contains class information about aggregate");
         }
