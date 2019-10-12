@@ -25,7 +25,6 @@ public class EventDispatchInterceptor implements MessageDispatchInterceptor<Even
     @Override
     public BiFunction<Integer, EventMessage<?>, EventMessage<?>> handle(List<? extends EventMessage<?>> messages) {
         return (index, event) -> {
-            log.info("EventDispatchInterceptor event: [{}].", event);
             String aggregateIdentifier = ((GenericDomainEventMessage)event).getAggregateIdentifier();
             URI lraContext = incomingLraContextsStore.getIncomingContextForAggregate(aggregateIdentifier);
             if(lraContext!=null){

@@ -31,8 +31,8 @@ public class CommandHandlerInterceptor implements MessageHandlerInterceptor<Comm
     @Override
     public Object handle(UnitOfWork<? extends CommandMessage<?>> unitOfWork, InterceptorChain interceptorChain) throws Exception {
         CommandMessage<?> command = unitOfWork.getMessage();
-        log.debug("CommandHandlerInterceptor command: [{}].", command);
         if(command.getPayloadType().isAnnotationPresent(JoinLRA.class)){
+            log.debug("JoinLRA annotation is found in the command: [{}].", command);
             //Arriving command wants to start LRA. The LRA context is saved in case the aggregate will be fire an event.
             URI lraContext = null;
             Optional<Field> incomingCommandLraField = Arrays.stream(command.getPayloadType().getDeclaredFields())

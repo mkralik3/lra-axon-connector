@@ -27,7 +27,7 @@ public class CommandDispatchInterceptor implements MessageDispatchInterceptor<Co
         return (index, command) -> {
             URI existContext = Current.peek();
             if(existContext!=null){
-                log.info("The method from which the command is dispatching contains LRA context. The context is added to the metadata. Context is {}", Current.getContexts());
+                log.debug("The method from which the command is dispatching contains LRA context. The context is added to the metadata. Context is {}", Current.getContexts());
                 command = command.andMetaData(singletonMap(LRA.LRA_HTTP_CONTEXT_HEADER, existContext));
             }
             return command;

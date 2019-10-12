@@ -98,7 +98,7 @@ public class EventHandlerInterceptor implements MessageHandlerInterceptor<EventM
 
         URI recoveryUri = lraClient.joinLRA(lraContext,
                 0L, compensate, complete, forget, leave, after, status, null);
-        log.info("URLs for join:\n" +
+        log.debug("URLs for join:\n" +
                 "Compensate: {}\n" +
                 "Complete: {}\n" +
                 "Forget: {}\n" +
@@ -120,7 +120,7 @@ public class EventHandlerInterceptor implements MessageHandlerInterceptor<EventM
                 targetAggregate = repository.load(targetAggregateId);
                 break; //found, no need to continue
             } catch (AggregateNotFoundException | IncompatibleAggregateException ex) {
-                log.info("Aggregate was not found in this repo, continue");
+                log.debug("Aggregate was not found in this repo, continue");
             }
         }
         return targetAggregate;

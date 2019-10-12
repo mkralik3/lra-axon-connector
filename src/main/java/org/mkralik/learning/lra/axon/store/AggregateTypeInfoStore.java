@@ -47,8 +47,4 @@ public class AggregateTypeInfoStore {
     public Map<Class<?>, AggregateTypeInfo> getAllAggregatesInfo(){
         return Collections.unmodifiableMap(aggregatesTypes);
     }
-
-    public Map<String, Aggregate<?>> getAllAggregates(){
-        return Collections.unmodifiableMap(aggregateIdAggregate);
-    }
 }
