@@ -10,4 +10,5 @@ public class LRAStatusCommand {
     @TargetAggregateIdentifier
     String id;
     URI lraId;
+    URI parentLraId;
 }

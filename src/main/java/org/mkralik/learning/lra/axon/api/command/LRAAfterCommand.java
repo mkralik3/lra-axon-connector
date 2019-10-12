@@ -2,6 +2,7 @@ package org.mkralik.learning.lra.axon.api.command;
 
 import lombok.Value;
 import org.axonframework.modelling.command.TargetAggregateIdentifier;
+import org.eclipse.microprofile.lra.annotation.LRAStatus;
 
 import java.net.URI;
 
@@ -9,5 +10,6 @@ import java.net.URI;
 public class LRAAfterCommand {
     @TargetAggregateIdentifier
     String id;
-    URI lraEndedId;
+    URI endedLraId;
+    LRAStatus status;
 }

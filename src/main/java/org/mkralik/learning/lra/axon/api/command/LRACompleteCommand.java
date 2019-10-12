@@ -10,4 +10,5 @@ public class LRACompleteCommand {
     @TargetAggregateIdentifier
     String id;
     URI lraId;
+    URI parentLraId;
 }

@@ -27,7 +27,7 @@ public class AfterStart {
 
 
     @EventListener(ApplicationReadyEvent.class)
-    public void doSomethingAfterStartup() {
+    public void afterStartUp() {
         log.debug("The application was started. The LRA Axon connector is going to scan all aggregates to knows return types");
         scanAllAggregates();
         log.debug("Scanning was complete. The found methods have valid return types");

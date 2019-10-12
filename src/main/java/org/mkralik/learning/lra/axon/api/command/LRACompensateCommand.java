@@ -10,4 +10,5 @@ public class LRACompensateCommand {
     @TargetAggregateIdentifier
     String id;
     URI lraId;
+    URI parentLraId;
 }
