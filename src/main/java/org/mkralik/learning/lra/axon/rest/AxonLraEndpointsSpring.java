@@ -125,7 +125,7 @@ public class AxonLraEndpointsSpring {
         }
     }
 
-    private enum EndpointType {
+    public enum EndpointType {
         COMPENSATE, COMPLETE, STATUS, FORGET, AFTER, LEAVE
     }
 }

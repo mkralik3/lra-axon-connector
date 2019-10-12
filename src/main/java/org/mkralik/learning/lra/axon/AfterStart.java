@@ -1,6 +1,8 @@
 package org.mkralik.learning.lra.axon;
 
+import lombok.extern.slf4j.Slf4j;
 import org.mkralik.learning.lra.axon.api.command.*;
+import org.mkralik.learning.lra.axon.rest.AxonLraEndpointsSpring;
 import org.mkralik.learning.lra.axon.store.AggregateTypeInfo;
 import org.mkralik.learning.lra.axon.store.AggregateTypeInfoStore;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,11 +13,10 @@ import org.springframework.stereotype.Component;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
-import java.util.Arrays;
-import java.util.List;
 import java.util.Map;
 
 @Component
+@Slf4j
 public class AfterStart {
 
     @Autowired
@@ -27,8 +28,9 @@ public class AfterStart {
 
     @EventListener(ApplicationReadyEvent.class)
     public void doSomethingAfterStartup() {
-        System.out.println("++++++++++hello world, I have just started up+++++++");
+        log.debug("The application was started. The LRA Axon connector is going to scan all aggregates to knows return types");
         scanAllAggregates();
+        log.debug("Scanning was complete. The found methods have valid return types");
     }
 
     private void scanAllAggregates(){
@@ -44,29 +46,39 @@ public class AfterStart {
         }
     }
 
-    private void fillIfMethodFits(AggregateTypeInfo aggregateInfo, Method methodForScaning){
-        List<Parameter> methodParametes  = Arrays.asList(methodForScaning.getParameters());
+    private void fillIfMethodFits(AggregateTypeInfo aggregateInfo, Method methodForScanning){
+        Parameter[] methodParameters  = methodForScanning.getParameters();
 
-        for (Parameter methodParameter : methodParametes) {
+        for (Parameter methodParameter : methodParameters) {
             if (LRACompleteCommand.class.equals(methodParameter.getType())) {
-                System.out.println("Contains Complete method");
-                aggregateInfo.setLraComplete(methodForScaning);
+                log.debug("The complete method is found in the aggregate class {}", methodForScanning.getDeclaringClass());
+                validateReturnType(methodForScanning.getReturnType(), AxonLraEndpointsSpring.EndpointType.COMPLETE);
+                aggregateInfo.setLraComplete(methodForScanning);
             } else if (LRACompensateCommand.class.equals(methodParameter.getType())) {
-                System.out.println("Contains Compensate method");
-                aggregateInfo.setLraCompensate(methodForScaning);
+                log.debug("The compensate method is found in the aggregate class {}", methodForScanning.getDeclaringClass());
+                validateReturnType(methodForScanning.getReturnType(), AxonLraEndpointsSpring.EndpointType.COMPENSATE);
+                aggregateInfo.setLraCompensate(methodForScanning);
             } else if (LRAStatusCommand.class.equals(methodParameter.getType())) {
-                System.out.println("Contains Status method");
-                aggregateInfo.setLraStatus(methodForScaning);
+                log.debug("The status method is found in the aggregate class {}", methodForScanning.getDeclaringClass());
+                validateReturnType(methodForScanning.getReturnType(), AxonLraEndpointsSpring.EndpointType.STATUS);
+                aggregateInfo.setLraStatus(methodForScanning);
             }else if (LRAForgetCommand.class.equals(methodParameter.getType())) {
-                System.out.println("Contains Forget method");
-                aggregateInfo.setLraForget(methodForScaning);
+                log.debug("The forget method is found in the aggregate class {}", methodForScanning.getDeclaringClass());
+                validateReturnType(methodForScanning.getReturnType(), AxonLraEndpointsSpring.EndpointType.FORGET);
+                aggregateInfo.setLraForget(methodForScanning);
             }else if (LRALeaveCommand.class.equals(methodParameter.getType())) {
-                System.out.println("Contains Leave method");
-                aggregateInfo.setLraLeave(methodForScaning);
+                log.debug("The leave method is found in the aggregate class {}", methodForScanning.getDeclaringClass());
+                validateReturnType(methodForScanning.getReturnType(), AxonLraEndpointsSpring.EndpointType.LEAVE);
+                aggregateInfo.setLraLeave(methodForScanning);
             }else if (LRAAfterCommand.class.equals(methodParameter.getType())) {
-                System.out.println("Contains After method");
-                aggregateInfo.setLraAfter(methodForScaning);
+                log.debug("The after lra method is found in the aggregate class {}", methodForScanning.getDeclaringClass());
+                validateReturnType(methodForScanning.getReturnType(), AxonLraEndpointsSpring.EndpointType.AFTER);
+                aggregateInfo.setLraAfter(methodForScanning);
             }
         }
+    }
+
+    private void validateReturnType(Class<?> returnType, AxonLraEndpointsSpring.EndpointType type){
+
     }
 }
