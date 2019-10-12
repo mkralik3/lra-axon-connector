@@ -1,28 +1,20 @@
 package org.mkralik.learning.lra.axon.rest;
 
 import lombok.extern.slf4j.Slf4j;
-import org.axonframework.commandhandling.gateway.CommandGateway;
-import org.eclipse.microprofile.lra.annotation.*;
-import org.mkralik.learning.lra.axon.api.command.*;
-import org.mkralik.learning.lra.axon.store.AggregateTypeInfoStore;
-import org.mkralik.learning.lra.axon.store.IncomingLraContextsStore;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import javax.ws.rs.*;
 import javax.ws.rs.core.Response;
-import java.io.UnsupportedEncodingException;
 import java.net.URI;
-import java.net.URLDecoder;
 
-import static org.eclipse.microprofile.lra.annotation.ws.rs.LRA.LRA_HTTP_CONTEXT_HEADER;
-import static org.eclipse.microprofile.lra.annotation.ws.rs.LRA.LRA_HTTP_ENDED_CONTEXT_HEADER;
+import static org.eclipse.microprofile.lra.annotation.ws.rs.LRA.*;
 
 /**
- * This class is prepared in case you want to use this extension with JAX-RS SPRING-BOOT application instead of
- * SPRING WEB
+ * This class is prepared in case the user wants to use this extension with SPRING-BOOT application which uses JAX-RS.
+ * After register this clas to the service's config file JerseyConfig, these endpoints are available for coordinator.
  *
- * You have to register this endpoint to the service JerseyConfig
  * e.g.
  * register(org.mkralik.learning.lra.axon.rest.AxonLraEndpointsJaxRS.class);
  */
@@ -32,114 +24,70 @@ import static org.eclipse.microprofile.lra.annotation.ws.rs.LRA.LRA_HTTP_ENDED_C
 public class AxonLraEndpointsJaxRS {
 
     @Autowired
-    private CommandGateway commandGateway;
-
-    @Autowired
-    private IncomingLraContextsStore incomingLraContextsStore;
-
-    @Autowired
-    private AggregateTypeInfoStore aggregateTypeInfoStore;
+    private AxonLraEndpointsSpring springRestEndpoint;
 
     @PUT
     @Path("/complete/{aggregateId}")
-    public Response complete(@PathParam("aggregateId")  String aggregateId, @HeaderParam(LRA_HTTP_CONTEXT_HEADER) URI lraId) throws UnsupportedEncodingException {
-        String realAggregateId = URLDecoder.decode(aggregateId, "UTF-8");
-        log.info("in the AXON LRA connector COMPLETE endpoint id: {}", realAggregateId);
-        Object result = commandGateway.sendAndWait(new LRACompleteCommand(realAggregateId, lraId));
-        return processResult(result, realAggregateId, EndpointType.COMPLETE);
+    public Response complete(@PathParam("aggregateId")  String aggregateId,
+                             @HeaderParam(LRA_HTTP_CONTEXT_HEADER) URI lraId,
+                             @HeaderParam(LRA_HTTP_PARENT_CONTEXT_HEADER) URI parentLraId) throws Exception {
+        log.debug("AXON LRA connector COMPLETE JAX-RS endpoint. Redirect to spring based endpoint");
+        return convertSpringResponseEntityToResponse(springRestEndpoint.complete(aggregateId, lraId, parentLraId));
     }
 
     @PUT
     @Path("/compensate/{aggregateId}")
-    public Response compensate(@PathParam("aggregateId") String aggregateId, @HeaderParam(LRA_HTTP_CONTEXT_HEADER) URI lraId) throws UnsupportedEncodingException {
-        String realAggregateId = URLDecoder.decode(aggregateId, "UTF-8");
-        log.info("in the AXON LRA connector COMPENSATE endpoint id: {}", realAggregateId);
-        Object result = commandGateway.sendAndWait(new LRACompensateCommand(realAggregateId, lraId));
-        return processResult(result, realAggregateId, EndpointType.COMPENSATE);
+    public Response compensate(@PathParam("aggregateId")  String aggregateId,
+                               @HeaderParam(LRA_HTTP_CONTEXT_HEADER) URI lraId,
+                               @HeaderParam(LRA_HTTP_PARENT_CONTEXT_HEADER) URI parentLraId) throws Exception {
+        log.debug("AXON LRA connector COMPENSATE JAX-RS endpoint. Redirect to spring based endpoint");
+        return convertSpringResponseEntityToResponse(springRestEndpoint.compensate(aggregateId, lraId, parentLraId));
     }
 
     @GET
     @Path("/status/{aggregateId}")
-    public Response status(@PathParam("aggregateId")  String aggregateId, @HeaderParam(LRA_HTTP_CONTEXT_HEADER) URI lraId) throws UnsupportedEncodingException {
-        String realAggregateId = URLDecoder.decode(aggregateId, "UTF-8");
-        log.info("in the AXON LRA connector STATUS endpoint id: {}", realAggregateId);
-        Object result = commandGateway.sendAndWait(new LRAStatusCommand(realAggregateId, lraId));
-        return processResult(result, realAggregateId, EndpointType.STATUS);
+    public Response status(@PathParam("aggregateId")  String aggregateId,
+                           @HeaderParam(LRA_HTTP_CONTEXT_HEADER) URI lraId,
+                           @HeaderParam(LRA_HTTP_PARENT_CONTEXT_HEADER) URI parentLraId) throws Exception {
+        log.debug("AXON LRA connector STATUS JAX-RS endpoint. Redirect to spring based endpoint");
+        return convertSpringResponseEntityToResponse(springRestEndpoint.status(aggregateId, lraId, parentLraId));
     }
 
     @DELETE
     @Path("/forget/{aggregateId}")
-    public void forget(@PathParam("aggregateId")  String aggregateId, @HeaderParam(LRA_HTTP_CONTEXT_HEADER) URI lraId) throws UnsupportedEncodingException {
-        String realAggregateId = URLDecoder.decode(aggregateId, "UTF-8");
-        log.info("in the AXON LRA connector FORGET endpoint id: {}", realAggregateId);
-        Object result = commandGateway.sendAndWait(new LRAForgetCommand(realAggregateId));
-        log.warn("Not implemented yet");
+    public Response forget(@PathParam("aggregateId")  String aggregateId,
+                       @HeaderParam(LRA_HTTP_CONTEXT_HEADER) URI lraId,
+                       @HeaderParam(LRA_HTTP_PARENT_CONTEXT_HEADER) URI parentLraId) throws Exception {
+        log.debug("AXON LRA connector FORGET JAX-RS endpoint. Redirect to spring based endpoint");
+        return convertSpringResponseEntityToResponse(springRestEndpoint.forget(aggregateId, lraId, parentLraId));
     }
 
     @PUT
     @Path("/after/{aggregateId}")
-    public void after(@PathParam("aggregateId")  String aggregateId, @HeaderParam(LRA_HTTP_ENDED_CONTEXT_HEADER) URI lraEndedId) throws UnsupportedEncodingException {
-        String realAggregateId = URLDecoder.decode(aggregateId, "UTF-8");
-        log.info("in the AXON LRA connector AFTER endpoint id: {}", realAggregateId);
-        Object result = commandGateway.sendAndWait(new LRAAfterCommand(realAggregateId, lraEndedId));
-        log.warn("Not implemented yet");
-    }
-
-    @PUT
-    @Path("/leave/{aggregateId}")
-    public void leave(@PathParam("aggregateId")  String aggregateId, @HeaderParam(LRA_HTTP_CONTEXT_HEADER) URI lraId) throws UnsupportedEncodingException {
-        String realAggregateId = URLDecoder.decode(aggregateId, "UTF-8");
-        log.info("in the AXON LRA connector LEAVE endpoint id: {}", realAggregateId);
-        Object result = commandGateway.sendAndWait(new LRALeaveCommand(realAggregateId));
-        log.warn("Not implemented yet");
+    public Response after(@PathParam("aggregateId")  String aggregateId,
+                      @HeaderParam(LRA_HTTP_ENDED_CONTEXT_HEADER) URI endedLraId,
+                      String lraStatus) throws Exception {
+        log.debug("AXON LRA connector AFTER JAX-RS endpoint. Redirect to spring based endpoint");
+        return convertSpringResponseEntityToResponse(springRestEndpoint.after(aggregateId, endedLraId, lraStatus));
     }
 
     @GET
     @Produces("application/json")
     @Path("/incomingLraContext")
     public Response incomingLraContext() {
-        return Response.ok().entity(incomingLraContextsStore.getAllIncomingContext().entrySet()).build();
+        return convertSpringResponseEntityToResponse(springRestEndpoint.incomingLraContext());
     }
 
     @GET
     @Produces("application/json")
     @Path("/aggregateInfo")
     public Response aggregatesInfo() {
-        return Response.ok().entity(aggregateTypeInfoStore.getAllAggregatesInfo().entrySet()).build();
+        return convertSpringResponseEntityToResponse(springRestEndpoint.aggregatesInfo());
     }
 
-    private Response processResult(Object result, String aggregateId, EndpointType type) {
-        Response.ResponseBuilder builder = Response.status(Response.Status.OK);
-        if (result instanceof Response) {
-            return (Response) result;
-        }else if (result==null) {
-            // method returns `null` or nothing (void)
-            switch (type) {
-                case COMPLETE:
-                    return builder.entity(ParticipantStatus.Completed.name()).build();
-                case COMPENSATE:
-                    return builder.entity(ParticipantStatus.Compensated.name()).build();
-                case STATUS:
-                    throw new IllegalStateException("Status method cannot return null or void");
-                default:
-                    //afterLra, forget,leave
-                    return builder.build();
-            }
-        }else if(result instanceof ParticipantStatus){
-            ParticipantStatus status = (ParticipantStatus) result;
-            if (status == ParticipantStatus.Compensating || status == ParticipantStatus.Completing) {
-                return builder.status(Response.Status.ACCEPTED).build();
-            } else {
-                builder.entity(status.name());
-            }
-        } else{
-            throw new IllegalStateException("not implemented yet");
-        }
+    private Response convertSpringResponseEntityToResponse(ResponseEntity re){
+        Response.ResponseBuilder builder = Response.status(re.getStatusCode().value());
+        builder.entity(re.getBody());
         return builder.build();
     }
-
-    private enum EndpointType{
-        COMPENSATE, COMPLETE, STATUS, FORGET, AFTER, LEAVE
-    }
-
 }

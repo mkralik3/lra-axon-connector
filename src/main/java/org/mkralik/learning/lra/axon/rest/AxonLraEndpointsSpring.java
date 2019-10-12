@@ -26,9 +26,6 @@ import static org.eclipse.microprofile.lra.annotation.ws.rs.LRA.*;
 public class AxonLraEndpointsSpring {
 
     @Autowired
-    private CommandGateway commandGateway;
-
-    @Autowired
     private IncomingLraContextsStore incomingLraContextsStore;
 
     @Autowired
@@ -92,10 +89,10 @@ public class AxonLraEndpointsSpring {
     }
 
     @PutMapping("/leave/{aggregateId}")
-    public void leave(@PathVariable("aggregateId") String aggregateId) throws UnsupportedEncodingException {
+    public void leave(@PathVariable("aggregateId") String aggregateId) throws Exception {
         String realAggregateId = URLDecoder.decode(aggregateId, "UTF-8");
         log.debug("AXON LRA connector LEAVE endpoint was called for aggregate id: {}", realAggregateId);
-        Object result = commandGateway.sendAndWait(new LRALeaveCommand(realAggregateId));
+        Object result = aggregateTypeInfoStore.getAggregate(realAggregateId).handle(GenericCommandMessage.asCommandMessage(new LRALeaveCommand(realAggregateId)));
         log.warn("Not implemented yet");
     }
 
