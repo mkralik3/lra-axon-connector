@@ -1,4 +1,4 @@
-package org.mkralik.learning.lra.axon.store;
+package org.mkralik.learning.lra.axon.interceptor.store;
 
 import org.axonframework.modelling.command.Aggregate;
 import org.springframework.stereotype.Component;

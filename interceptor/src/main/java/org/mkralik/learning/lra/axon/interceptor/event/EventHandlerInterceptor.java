@@ -1,4 +1,4 @@
-package org.mkralik.learning.lra.axon.interceptors.event;
+package org.mkralik.learning.lra.axon.interceptor.event;
 
 import io.narayana.lra.client.NarayanaLRAClient;
 import lombok.extern.slf4j.Slf4j;
@@ -12,9 +12,9 @@ import org.axonframework.modelling.command.Aggregate;
 import org.axonframework.modelling.command.AggregateNotFoundException;
 import org.axonframework.modelling.command.Repository;
 import org.eclipse.microprofile.lra.annotation.ws.rs.LRA;
-import org.mkralik.learning.lra.axon.store.AggregateTypeInfo;
-import org.mkralik.learning.lra.axon.store.AggregateTypeInfoStore;
-import org.mkralik.learning.lra.axon.store.IncomingLraContextsStore;
+import org.mkralik.learning.lra.axon.interceptor.store.AggregateTypeInfo;
+import org.mkralik.learning.lra.axon.interceptor.store.AggregateTypeInfoStore;
+import org.mkralik.learning.lra.axon.interceptor.store.IncomingLraContextsStore;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;

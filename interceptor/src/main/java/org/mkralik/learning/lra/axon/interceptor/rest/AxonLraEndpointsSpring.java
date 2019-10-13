@@ -1,4 +1,4 @@
-package org.mkralik.learning.lra.axon.rest;
+package org.mkralik.learning.lra.axon.interceptor.rest;
 
 import lombok.extern.slf4j.Slf4j;
 import org.axonframework.commandhandling.GenericCommandMessage;
@@ -6,8 +6,8 @@ import org.axonframework.modelling.command.Repository;
 import org.eclipse.microprofile.lra.annotation.LRAStatus;
 import org.eclipse.microprofile.lra.annotation.ParticipantStatus;
 import org.mkralik.learning.lra.axon.api.command.*;
-import org.mkralik.learning.lra.axon.store.AggregateTypeInfoStore;
-import org.mkralik.learning.lra.axon.store.IncomingLraContextsStore;
+import org.mkralik.learning.lra.axon.interceptor.store.AggregateTypeInfoStore;
+import org.mkralik.learning.lra.axon.interceptor.store.IncomingLraContextsStore;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;

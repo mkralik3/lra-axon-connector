@@ -1,4 +1,4 @@
-package org.mkralik.learning.lra.axon.rest;
+package org.mkralik.learning.lra.axon.interceptor.rest;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,7 +16,7 @@ import static org.eclipse.microprofile.lra.annotation.ws.rs.LRA.*;
  * After register this clas to the service's config file JerseyConfig, these endpoints are available for coordinator.
  * <p>
  * e.g.
- * register(org.mkralik.learning.lra.axon.rest.AxonLraEndpointsJaxRS.class);
+ * register(org.mkralik.learning.lra.axon.interceptor.rest.AxonLraEndpointsJaxRS.class);
  */
 @Service
 @Slf4j

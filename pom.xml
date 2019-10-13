@@ -5,8 +5,11 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>org.mkralik.learning.lra.axon</groupId>
-    <artifactId>lra-axon-connector</artifactId>
+    <artifactId>lra-axon-connector-parent</artifactId>
     <version>1.0-SNAPSHOT</version>
+    <packaging>pom</packaging>
+    <name>lra-axon-connector-parent</name>
+
     <properties>
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
@@ -15,7 +18,10 @@
         <lra.version>5.9.8.Final</lra.version>
         <microprofile.lra.version>1.0-RC1</microprofile.lra.version>
         <jersey.version>2.26</jersey.version>
+        <lombok.version>1.18.8</lombok.version>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
+
     <build>
         <plugins>
             <plugin>
@@ -32,40 +38,9 @@
 
     <dependencies>
         <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot</artifactId>
-            <version>${spring.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-web</artifactId>
-            <version>${spring.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.glassfish.jersey.core</groupId>
-            <artifactId>jersey-common</artifactId>
-            <version>${jersey.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.glassfish.jersey.core</groupId>
-            <artifactId>jersey-client</artifactId>
-            <version>${jersey.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.glassfish.jersey.inject</groupId>
-            <artifactId>jersey-hk2</artifactId>
-            <version>${jersey.version}</version>
-        </dependency>
-        <!-- in case the service using JAX-RS instead of Spring WEB -->
-<!--        <dependency>-->
-<!--            <groupId>org.springframework.boot</groupId>-->
-<!--            <artifactId>spring-boot-starter-jersey</artifactId>-->
-<!--            <version>${spring.version}</version>-->
-<!--        </dependency>-->
-        <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
-            <version>1.18.8</version>
+            <version>${lombok.version}</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
@@ -73,25 +48,9 @@
             <artifactId>axon-eventsourcing</artifactId>
             <version>${axon.version}</version>
         </dependency>
-        <dependency>
-            <groupId>org.axonframework</groupId>
-            <artifactId>axon-configuration</artifactId>
-            <version>${axon.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.axonframework</groupId>
-            <artifactId>axon-spring</artifactId>
-            <version>${axon.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.jboss.narayana.rts</groupId>
-            <artifactId>lra-client</artifactId>
-            <version>${lra.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.eclipse.microprofile.lra</groupId>
-            <artifactId>microprofile-lra-api</artifactId>
-            <version>${microprofile.lra.version}</version>
-        </dependency>
     </dependencies>
+    <modules>
+        <module>api</module>
+        <module>interceptor</module>
+    </modules>
 </project>

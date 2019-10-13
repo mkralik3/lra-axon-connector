@@ -1,11 +1,11 @@
-package org.mkralik.learning.lra.axon.interceptors.event;
+package org.mkralik.learning.lra.axon.interceptor.event;
 
 import lombok.extern.slf4j.Slf4j;
 import org.axonframework.eventhandling.EventMessage;
 import org.axonframework.eventhandling.GenericDomainEventMessage;
 import org.axonframework.messaging.MessageDispatchInterceptor;
 import org.eclipse.microprofile.lra.annotation.ws.rs.LRA;
-import org.mkralik.learning.lra.axon.store.IncomingLraContextsStore;
+import org.mkralik.learning.lra.axon.interceptor.store.IncomingLraContextsStore;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 

@@ -1,11 +1,11 @@
-package org.mkralik.learning.lra.axon;
+package org.mkralik.learning.lra.axon.interceptor;
 
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.microprofile.lra.annotation.ParticipantStatus;
 import org.mkralik.learning.lra.axon.api.command.*;
-import org.mkralik.learning.lra.axon.rest.AxonLraEndpointsSpring;
-import org.mkralik.learning.lra.axon.store.AggregateTypeInfo;
-import org.mkralik.learning.lra.axon.store.AggregateTypeInfoStore;
+import org.mkralik.learning.lra.axon.interceptor.rest.AxonLraEndpointsSpring.EndpointType;
+import org.mkralik.learning.lra.axon.interceptor.store.AggregateTypeInfo;
+import org.mkralik.learning.lra.axon.interceptor.store.AggregateTypeInfoStore;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.ApplicationContext;
@@ -16,6 +16,9 @@ import org.springframework.stereotype.Component;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
 import java.util.Map;
+
+import static org.mkralik.learning.lra.axon.interceptor.rest.AxonLraEndpointsSpring.EndpointType.*;
+import static org.mkralik.learning.lra.axon.interceptor.rest.AxonLraEndpointsSpring.EndpointType.COMPENSATE;
 
 @Component
 @Slf4j
@@ -54,33 +57,33 @@ public class AfterStart {
         for (Parameter methodParameter : methodParameters) {
             if (LRACompleteCommand.class.equals(methodParameter.getType())) {
                 log.debug("The complete method is found in the aggregate class {}", methodForScanning.getDeclaringClass());
-                validateReturnType(methodForScanning.getReturnType(), AxonLraEndpointsSpring.EndpointType.COMPLETE);
+                validateReturnType(methodForScanning.getReturnType(), COMPLETE);
                 aggregateInfo.setLraComplete(methodForScanning);
             } else if (LRACompensateCommand.class.equals(methodParameter.getType())) {
                 log.debug("The compensate method is found in the aggregate class {}", methodForScanning.getDeclaringClass());
-                validateReturnType(methodForScanning.getReturnType(), AxonLraEndpointsSpring.EndpointType.COMPENSATE);
+                validateReturnType(methodForScanning.getReturnType(), COMPENSATE);
                 aggregateInfo.setLraCompensate(methodForScanning);
             } else if (LRAStatusCommand.class.equals(methodParameter.getType())) {
                 log.debug("The status method is found in the aggregate class {}", methodForScanning.getDeclaringClass());
-                validateReturnType(methodForScanning.getReturnType(), AxonLraEndpointsSpring.EndpointType.STATUS);
+                validateReturnType(methodForScanning.getReturnType(), STATUS);
                 aggregateInfo.setLraStatus(methodForScanning);
             } else if (LRAForgetCommand.class.equals(methodParameter.getType())) {
                 log.debug("The forget method is found in the aggregate class {}", methodForScanning.getDeclaringClass());
-                validateReturnType(methodForScanning.getReturnType(), AxonLraEndpointsSpring.EndpointType.FORGET);
+                validateReturnType(methodForScanning.getReturnType(), FORGET);
                 aggregateInfo.setLraForget(methodForScanning);
             } else if (LRALeaveCommand.class.equals(methodParameter.getType())) {
                 log.debug("The leave method is found in the aggregate class {}", methodForScanning.getDeclaringClass());
-                validateReturnType(methodForScanning.getReturnType(), AxonLraEndpointsSpring.EndpointType.LEAVE);
+                validateReturnType(methodForScanning.getReturnType(), LEAVE);
                 aggregateInfo.setLraLeave(methodForScanning);
             } else if (LRAAfterCommand.class.equals(methodParameter.getType())) {
                 log.debug("The after lra method is found in the aggregate class {}", methodForScanning.getDeclaringClass());
-                validateReturnType(methodForScanning.getReturnType(), AxonLraEndpointsSpring.EndpointType.AFTER);
+                validateReturnType(methodForScanning.getReturnType(), AFTER);
                 aggregateInfo.setLraAfter(methodForScanning);
             }
         }
     }
 
-    private void validateReturnType(Class<?> returnType, AxonLraEndpointsSpring.EndpointType type) {
+    private void validateReturnType(Class<?> returnType, EndpointType type) {
         switch (type) {
             case COMPENSATE:
             case COMPLETE:

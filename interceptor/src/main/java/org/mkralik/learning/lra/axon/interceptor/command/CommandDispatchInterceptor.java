@@ -1,4 +1,4 @@
-package org.mkralik.learning.lra.axon.interceptors.command;
+package org.mkralik.learning.lra.axon.interceptor.command;
 
 import io.narayana.lra.Current;
 import io.narayana.lra.client.NarayanaLRAClient;

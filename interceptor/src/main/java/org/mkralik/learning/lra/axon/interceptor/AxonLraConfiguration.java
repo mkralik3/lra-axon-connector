@@ -1,15 +1,15 @@
-package org.mkralik.learning.lra.axon;
+package org.mkralik.learning.lra.axon.interceptor;
 
 import io.narayana.lra.client.NarayanaLRAClient;
 import org.axonframework.commandhandling.CommandBus;
 import org.axonframework.config.EventProcessingConfigurer;
 import org.axonframework.eventhandling.EventBus;
-import org.mkralik.learning.lra.axon.interceptors.command.CommandDispatchInterceptor;
-import org.mkralik.learning.lra.axon.interceptors.command.CommandHandlerInterceptor;
-import org.mkralik.learning.lra.axon.interceptors.event.EventDispatchInterceptor;
-import org.mkralik.learning.lra.axon.interceptors.event.EventHandlerInterceptor;
-import org.mkralik.learning.lra.axon.store.AggregateTypeInfoStore;
-import org.mkralik.learning.lra.axon.store.IncomingLraContextsStore;
+import org.mkralik.learning.lra.axon.interceptor.command.CommandDispatchInterceptor;
+import org.mkralik.learning.lra.axon.interceptor.command.CommandHandlerInterceptor;
+import org.mkralik.learning.lra.axon.interceptor.event.EventDispatchInterceptor;
+import org.mkralik.learning.lra.axon.interceptor.event.EventHandlerInterceptor;
+import org.mkralik.learning.lra.axon.interceptor.store.AggregateTypeInfoStore;
+import org.mkralik.learning.lra.axon.interceptor.store.IncomingLraContextsStore;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

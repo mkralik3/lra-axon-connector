@@ -1,4 +1,4 @@
-package org.mkralik.learning.lra.axon.store;
+package org.mkralik.learning.lra.axon.interceptor.store;
 
 import com.fasterxml.jackson.annotation.JsonGetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;

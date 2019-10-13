@@ -1,4 +1,4 @@
-package org.mkralik.learning.lra.axon.interceptors.command;
+package org.mkralik.learning.lra.axon.interceptor.command;
 
 import lombok.extern.slf4j.Slf4j;
 import org.axonframework.commandhandling.CommandMessage;
@@ -9,7 +9,7 @@ import org.axonframework.modelling.command.TargetAggregateIdentifier;
 import org.eclipse.microprofile.lra.annotation.ws.rs.LRA;
 import org.mkralik.learning.lra.axon.api.annotation.JoinLRA;
 import org.mkralik.learning.lra.axon.api.annotation.LRAContext;
-import org.mkralik.learning.lra.axon.store.IncomingLraContextsStore;
+import org.mkralik.learning.lra.axon.interceptor.store.IncomingLraContextsStore;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
