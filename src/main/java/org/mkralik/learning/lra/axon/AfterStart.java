@@ -35,9 +35,9 @@ public class AfterStart {
         log.debug("Scanning was complete. The found methods have valid return types");
     }
 
-    private void scanAllAggregates(){
+    private void scanAllAggregates() {
         Map<String, Object> LRAParticipant = appContext.getBeansWithAnnotation(org.axonframework.spring.stereotype.Aggregate.class);
-        for(Object participant : LRAParticipant.values()) {
+        for (Object participant : LRAParticipant.values()) {
             AggregateTypeInfo aggregateInfo = new AggregateTypeInfo();
             Class<?> participantClazz = participant.getClass();
 
@@ -48,8 +48,8 @@ public class AfterStart {
         }
     }
 
-    private void fillIfMethodFits(AggregateTypeInfo aggregateInfo, Method methodForScanning){
-        Parameter[] methodParameters  = methodForScanning.getParameters();
+    private void fillIfMethodFits(AggregateTypeInfo aggregateInfo, Method methodForScanning) {
+        Parameter[] methodParameters = methodForScanning.getParameters();
 
         for (Parameter methodParameter : methodParameters) {
             if (LRACompleteCommand.class.equals(methodParameter.getType())) {
@@ -64,15 +64,15 @@ public class AfterStart {
                 log.debug("The status method is found in the aggregate class {}", methodForScanning.getDeclaringClass());
                 validateReturnType(methodForScanning.getReturnType(), AxonLraEndpointsSpring.EndpointType.STATUS);
                 aggregateInfo.setLraStatus(methodForScanning);
-            }else if (LRAForgetCommand.class.equals(methodParameter.getType())) {
+            } else if (LRAForgetCommand.class.equals(methodParameter.getType())) {
                 log.debug("The forget method is found in the aggregate class {}", methodForScanning.getDeclaringClass());
                 validateReturnType(methodForScanning.getReturnType(), AxonLraEndpointsSpring.EndpointType.FORGET);
                 aggregateInfo.setLraForget(methodForScanning);
-            }else if (LRALeaveCommand.class.equals(methodParameter.getType())) {
+            } else if (LRALeaveCommand.class.equals(methodParameter.getType())) {
                 log.debug("The leave method is found in the aggregate class {}", methodForScanning.getDeclaringClass());
                 validateReturnType(methodForScanning.getReturnType(), AxonLraEndpointsSpring.EndpointType.LEAVE);
                 aggregateInfo.setLraLeave(methodForScanning);
-            }else if (LRAAfterCommand.class.equals(methodParameter.getType())) {
+            } else if (LRAAfterCommand.class.equals(methodParameter.getType())) {
                 log.debug("The after lra method is found in the aggregate class {}", methodForScanning.getDeclaringClass());
                 validateReturnType(methodForScanning.getReturnType(), AxonLraEndpointsSpring.EndpointType.AFTER);
                 aggregateInfo.setLraAfter(methodForScanning);
@@ -80,22 +80,22 @@ public class AfterStart {
         }
     }
 
-    private void validateReturnType(Class<?> returnType, AxonLraEndpointsSpring.EndpointType type){
-        switch (type){
+    private void validateReturnType(Class<?> returnType, AxonLraEndpointsSpring.EndpointType type) {
+        switch (type) {
             case COMPENSATE:
             case COMPLETE:
-                if(!(returnType.equals(Void.TYPE) || returnType.equals(Void.class) || returnType.equals(ParticipantStatus.class) || returnType.equals(ResponseEntity.class))){
+                if (!(returnType.equals(Void.TYPE) || returnType.equals(Void.class) || returnType.equals(ParticipantStatus.class) || returnType.equals(ResponseEntity.class))) {
                     throw new IllegalStateException("The function which handles LRACompensateCommand or LRACompleteCommand" +
                             " has to return only VOID, ParticipantStatus or ResponseEntity. The invalid return type is " + returnType);
                 }
                 break;
             case STATUS:
-                if(!returnType.equals(ParticipantStatus.class)){
+                if (!returnType.equals(ParticipantStatus.class)) {
                     throw new IllegalStateException("The function which handles LRAStatusCommand has to return ParticipantStatus enum. The invalid return type is " + returnType);
                 }
                 break;
             case AFTER:
-                if(!returnType.equals(Void.TYPE)){
+                if (!returnType.equals(Void.TYPE)) {
                     throw new IllegalStateException("The function which handles LRAAfterCommand must not return anything (void). The invalid return type is " + returnType);
                 }
                 break;

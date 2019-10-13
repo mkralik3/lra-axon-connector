@@ -16,27 +16,28 @@ public class IncomingLraContextsStore {
     private HashMap<String, URI> incomingLraContext;
 
     public IncomingLraContextsStore() {
-        this.incomingLraContext =  new HashMap<String, URI>();
+        this.incomingLraContext = new HashMap<>();
     }
 
-    public void saveIncomingContextForAggregate(String aggregateId, URI lraContext){
+    public void saveIncomingContextForAggregate(String aggregateId, URI lraContext) {
         incomingLraContext.put(aggregateId, lraContext);
     }
 
-    public URI deleteIncomingContextForAggregate(String aggregateId){
+    public URI deleteIncomingContextForAggregate(String aggregateId) {
         return incomingLraContext.remove(aggregateId);
     }
 
     /**
      * Get waiting incoming context
+     *
      * @param aggregateId particular target aggregate identifier
      * @return lra context for aggregate if exist, otherwise null
      */
-    public URI getIncomingContextForAggregate(String aggregateId){
+    public URI getIncomingContextForAggregate(String aggregateId) {
         return incomingLraContext.getOrDefault(aggregateId, null);
     }
 
-    public Map<String, URI> getAllIncomingContext(){
+    public Map<String, URI> getAllIncomingContext() {
         return Collections.unmodifiableMap(incomingLraContext);
     }
 

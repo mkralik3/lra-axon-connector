@@ -79,21 +79,21 @@ public class EventHandlerInterceptor implements MessageHandlerInterceptor<EventM
         String encodedTargetId = URLEncoder.encode(targetAggregateId, "UTF-8");
 
         AggregateTypeInfo targetAggregateTypeInfo = aggregateTypeInfoStore.getAggregateTypeInfo(targetAggregateId);
-        if(targetAggregateTypeInfo==null){
+        if (targetAggregateTypeInfo == null) {
             throw new IllegalStateException("Aggregate type info store doesn't contains information about aggregate. The info about aggregate type is saved after start the application.");
         }
 
-        URI compensate = targetAggregateTypeInfo.getLraCompensate()!=null ?
+        URI compensate = targetAggregateTypeInfo.getLraCompensate() != null ?
                 new URI("http://localhost:" + port + "/axonLra/compensate/" + encodedTargetId) : null;
-        URI complete = targetAggregateTypeInfo.getLraComplete()!=null ?
+        URI complete = targetAggregateTypeInfo.getLraComplete() != null ?
                 new URI("http://localhost:" + port + "/axonLra/complete/" + encodedTargetId) : null;
-        URI forget = targetAggregateTypeInfo.getLraForget()!=null ?
+        URI forget = targetAggregateTypeInfo.getLraForget() != null ?
                 new URI("http://localhost:" + port + "/axonLra/forget/" + encodedTargetId) : null;
-        URI leave = targetAggregateTypeInfo.getLraLeave()!=null ?
+        URI leave = targetAggregateTypeInfo.getLraLeave() != null ?
                 new URI("http://localhost:" + port + "/axonLra/leave/" + encodedTargetId) : null;
-        URI after = targetAggregateTypeInfo.getLraAfter()!=null ?
+        URI after = targetAggregateTypeInfo.getLraAfter() != null ?
                 new URI("http://localhost:" + port + "/axonLra/after/" + encodedTargetId) : null;
-        URI status = targetAggregateTypeInfo.getLraStatus()!=null ?
+        URI status = targetAggregateTypeInfo.getLraStatus() != null ?
                 new URI("http://localhost:" + port + "/axonLra/status/" + encodedTargetId) : null;
 
         URI recoveryUri = lraClient.joinLRA(lraContext,

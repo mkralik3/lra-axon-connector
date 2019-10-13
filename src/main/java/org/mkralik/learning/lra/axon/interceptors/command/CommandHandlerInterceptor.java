@@ -31,29 +31,32 @@ public class CommandHandlerInterceptor implements MessageHandlerInterceptor<Comm
     @Override
     public Object handle(UnitOfWork<? extends CommandMessage<?>> unitOfWork, InterceptorChain interceptorChain) throws Exception {
         CommandMessage<?> command = unitOfWork.getMessage();
-        if(command.getPayloadType().isAnnotationPresent(JoinLRA.class)){
+        if (command.getPayloadType().isAnnotationPresent(JoinLRA.class)) {
             log.debug("JoinLRA annotation is found in the command: [{}].", command);
             //Arriving command wants to start LRA. The LRA context is saved in case the aggregate will be fire an event.
-            URI lraContext = null;
+            URI lraContext;
             Optional<Field> incomingCommandLraField = Arrays.stream(command.getPayloadType().getDeclaredFields())
                     .filter(field -> field.isAnnotationPresent(LRAContext.class)).findAny();
 
             Field targetIdentifierField = Arrays.stream(command.getPayloadType().getDeclaredFields())
-                    .filter(field -> field.isAnnotationPresent(TargetAggregateIdentifier.class)).findAny().get();
+                    .filter(field -> field.isAnnotationPresent(TargetAggregateIdentifier.class)).findAny().orElse(null);
+            if (targetIdentifierField == null) {
+                throw new IllegalStateException("In aggregate class missing TargetAggregateIdentifier annotation");
+            }
             String aggregateTargetIdentifier = String.valueOf(getObjectFromField(command.getPayload(), targetIdentifierField));
 
 
-            if(incomingCommandLraField.isPresent()){
+            if (incomingCommandLraField.isPresent()) {
                 // user specify context explicitly, use it and also add it to metadata
                 log.debug("Context Field is present, the arrived context is overridden.");
                 final URI context = lraContext = (URI) getObjectFromField(command.getPayload(), incomingCommandLraField.get());
                 unitOfWork.transformMessage(event -> event
                         .andMetaData(singletonMap(LRA.LRA_HTTP_CONTEXT_HEADER, context)));
-            }else if (command.getMetaData().get(LRA.LRA_HTTP_CONTEXT_HEADER)!=null){
+            } else if (command.getMetaData().get(LRA.LRA_HTTP_CONTEXT_HEADER) != null) {
                 // user doesn't specify context but the context comes from source
                 log.debug("Context Field is not present, the context is used from metadata.");
                 lraContext = (URI) command.getMetaData().get(LRA.LRA_HTTP_CONTEXT_HEADER);
-            }else{
+            } else {
                 throw new ConfigurationException("Command contains annotation for join LRA but context missing! " +
                         "The source method of the command doesn't belong to LRA context and the context doesn't provide explicitly by @LRAContext");
             }
@@ -63,12 +66,12 @@ public class CommandHandlerInterceptor implements MessageHandlerInterceptor<Comm
     }
 
     private Object getObjectFromField(Object object, Field field) throws IllegalAccessException {
-        Object result = null;
-        if(!field.isAccessible()){
+        Object result;
+        if (!field.isAccessible()) {
             field.setAccessible(true);
             result = field.get(object);
             field.setAccessible(false);
-        }else{
+        } else {
             result = field.get(object);
         }
         return result;

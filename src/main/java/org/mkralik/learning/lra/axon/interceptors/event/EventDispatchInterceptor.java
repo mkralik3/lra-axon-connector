@@ -25,9 +25,9 @@ public class EventDispatchInterceptor implements MessageDispatchInterceptor<Even
     @Override
     public BiFunction<Integer, EventMessage<?>, EventMessage<?>> handle(List<? extends EventMessage<?>> messages) {
         return (index, event) -> {
-            String aggregateIdentifier = ((GenericDomainEventMessage)event).getAggregateIdentifier();
+            String aggregateIdentifier = ((GenericDomainEventMessage) event).getAggregateIdentifier();
             URI lraContext = incomingLraContextsStore.getIncomingContextForAggregate(aggregateIdentifier);
-            if(lraContext!=null){
+            if (lraContext != null) {
                 //For this aggregate is waiting LRA context, add it to the event metadata
                 event = event.andMetaData(singletonMap(LRA.LRA_HTTP_CONTEXT_HEADER, lraContext));
             }

@@ -10,41 +10,41 @@ import java.util.Map;
 @Component
 public class AggregateTypeInfoStore {
 
-    public Map<Class<?>, AggregateTypeInfo> aggregatesTypes;
+    private Map<Class<?>, AggregateTypeInfo> aggregatesTypes;
 
-    public Map<String, Aggregate<?>> aggregateIdAggregate;
+    private Map<String, Aggregate<?>> aggregateIdAggregate;
 
     public AggregateTypeInfoStore() {
-        this.aggregatesTypes =  new HashMap<>();
-        this.aggregateIdAggregate =  new HashMap<>();
+        this.aggregatesTypes = new HashMap<>();
+        this.aggregateIdAggregate = new HashMap<>();
     }
 
-    public void saveAggregateTypeInfo(Class<?> aggregateClass, AggregateTypeInfo aggregateInfo){
+    public void saveAggregateTypeInfo(Class<?> aggregateClass, AggregateTypeInfo aggregateInfo) {
         aggregatesTypes.put(aggregateClass, aggregateInfo);
     }
 
-    public void saveAggregateInstance(String aggregateId, Aggregate<?> aggregate){
+    public void saveAggregateInstance(String aggregateId, Aggregate<?> aggregate) {
         aggregateIdAggregate.putIfAbsent(aggregateId, aggregate);
     }
 
     /**
      * Get aggregate type info according to aggregate class
      */
-    public AggregateTypeInfo getAggregateTypeInfo(String aggregateId){
+    public AggregateTypeInfo getAggregateTypeInfo(String aggregateId) {
         Aggregate<?> aggregate = aggregateIdAggregate.getOrDefault(aggregateId, null);
-        if(aggregate!=null){
+        if (aggregate != null) {
             Class<?> aggregateClazz = aggregate.rootType();
             return aggregatesTypes.getOrDefault(aggregateClazz, null);
-        }else{
+        } else {
             return null;
         }
     }
 
-    public Aggregate<?> getAggregate(String aggregateId){
+    public Aggregate<?> getAggregate(String aggregateId) {
         return aggregateIdAggregate.getOrDefault(aggregateId, null);
     }
 
-    public Map<Class<?>, AggregateTypeInfo> getAllAggregatesInfo(){
+    public Map<Class<?>, AggregateTypeInfo> getAllAggregatesInfo() {
         return Collections.unmodifiableMap(aggregatesTypes);
     }
 }
