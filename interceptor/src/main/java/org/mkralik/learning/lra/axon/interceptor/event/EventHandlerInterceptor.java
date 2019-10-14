@@ -20,9 +20,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.io.UnsupportedEncodingException;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.net.URLEncoder;
+import java.net.*;
 import java.util.List;
 
 @Slf4j
@@ -75,26 +73,26 @@ public class EventHandlerInterceptor implements MessageHandlerInterceptor<EventM
         return interceptorChain.proceed();
     }
 
-    private URI joinLraForTargetAggregate(URI lraContext, String targetAggregateId) throws UnsupportedEncodingException, URISyntaxException {
+    private URI joinLraForTargetAggregate(URI lraContext, String targetAggregateId) throws UnsupportedEncodingException, URISyntaxException, UnknownHostException {
         String encodedTargetId = URLEncoder.encode(targetAggregateId, "UTF-8");
 
         AggregateTypeInfo targetAggregateTypeInfo = aggregateTypeInfoStore.getAggregateTypeInfo(targetAggregateId);
         if (targetAggregateTypeInfo == null) {
             throw new IllegalStateException("Aggregate type info store doesn't contains information about aggregate. The info about aggregate type is saved after start the application.");
         }
-
+        String host = InetAddress.getLocalHost().getHostAddress();
         URI compensate = targetAggregateTypeInfo.getLraCompensate() != null ?
-                new URI("http://localhost:" + port + "/axonLra/compensate/" + encodedTargetId) : null;
+                new URI("http://" + host + ":" + port + "/axonLra/compensate/" + encodedTargetId) : null;
         URI complete = targetAggregateTypeInfo.getLraComplete() != null ?
-                new URI("http://localhost:" + port + "/axonLra/complete/" + encodedTargetId) : null;
+                new URI("http://" + host + ":" + port + "/axonLra/complete/" + encodedTargetId) : null;
         URI forget = targetAggregateTypeInfo.getLraForget() != null ?
-                new URI("http://localhost:" + port + "/axonLra/forget/" + encodedTargetId) : null;
+                new URI("http://" + host + ":" + port + "/axonLra/forget/" + encodedTargetId) : null;
         URI leave = targetAggregateTypeInfo.getLraLeave() != null ?
-                new URI("http://localhost:" + port + "/axonLra/leave/" + encodedTargetId) : null;
+                new URI("http://" + host + ":" + port + "/axonLra/leave/" + encodedTargetId) : null;
         URI after = targetAggregateTypeInfo.getLraAfter() != null ?
-                new URI("http://localhost:" + port + "/axonLra/after/" + encodedTargetId) : null;
+                new URI("http://" + host + ":" + port + "/axonLra/after/" + encodedTargetId) : null;
         URI status = targetAggregateTypeInfo.getLraStatus() != null ?
-                new URI("http://localhost:" + port + "/axonLra/status/" + encodedTargetId) : null;
+                new URI("http://" + host + ":" + port + "/axonLra/status/" + encodedTargetId) : null;
 
         URI recoveryUri = lraClient.joinLRA(lraContext,
                 0L, compensate, complete, forget, leave, after, status, null);
