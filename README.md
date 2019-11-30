@@ -3,7 +3,7 @@
 This is proof of concept application for connection the LRA coordinator with an Axon service. It offers a way how
 Axon based applications can be enlisted in the active LRA as participants.
 
-[LRA Axon connector quickstart](https://github.com/jbosstm/quickstart/tree/master/rts/lra)
+[LRA Axon connector quickstart](https://github.com/mkralik3/axon-microservices-example)
 
 ## Guide how to use LRA Axon connector
 
