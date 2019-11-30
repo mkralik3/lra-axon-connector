@@ -6,7 +6,7 @@
 
     <groupId>org.mkralik.learning.lra.axon</groupId>
     <artifactId>lra-axon-connector-parent</artifactId>
-    <version>1.0-SNAPSHOT</version>
+    <version>1.0</version>
     <packaging>pom</packaging>
     <name>lra-axon-connector-parent</name>
 
@@ -15,7 +15,7 @@
         <maven.compiler.target>1.8</maven.compiler.target>
         <axon.version>4.1.1</axon.version>
         <spring.version>2.1.6.RELEASE</spring.version>
-        <lra.version>5.9.8.Final</lra.version>
+        <lra.version>5.10.0.Final</lra.version>
         <microprofile.lra.version>1.0-RC1</microprofile.lra.version>
         <jersey.version>2.26</jersey.version>
         <lombok.version>1.18.8</lombok.version>

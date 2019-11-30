@@ -10,6 +10,7 @@ import java.util.Map;
 @Component
 public class AggregateTypeInfoStore {
 
+    // For each aggregate is saved info about participants methods
     private Map<Class<?>, AggregateTypeInfo> aggregatesTypes;
 
     private Map<String, Aggregate<?>> aggregateIdAggregate;

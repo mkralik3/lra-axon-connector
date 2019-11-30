@@ -23,6 +23,8 @@ import java.io.UnsupportedEncodingException;
 import java.net.*;
 import java.util.List;
 
+import static java.util.Collections.singletonMap;
+
 @Slf4j
 @Component
 public class EventHandlerInterceptor implements MessageHandlerInterceptor<EventMessage<?>> {
@@ -55,7 +57,7 @@ public class EventHandlerInterceptor implements MessageHandlerInterceptor<EventM
             String aggregateID = ((DomainEventMessage) unitOfWork.getMessage()).getAggregateIdentifier();
             Aggregate<?> targetAggregate = findTargetAggregate(aggregateID);
 
-            //Save aggregate instance for lra coordinator (cannot be saved after joining because during
+            //Save aggregate instance for endpoints (cannot be saved after joining because during
             // the recreation of application state from the event store, the join is not performed again
             aggregateTypeInfoStore.saveAggregateInstance(aggregateID, targetAggregate);
 
@@ -66,6 +68,8 @@ public class EventHandlerInterceptor implements MessageHandlerInterceptor<EventM
             // null means that no LRA context is waiting for this aggregate (targetID)
             if (waitingContextForAggregate != null && waitingContextForAggregate.equals(lraContextFromMetadata)) {
                 URI recoveryParticipantUri = joinLraForTargetAggregate(lraContextFromMetadata, aggregateID);
+                unitOfWork.transformMessage(event -> event
+                        .andMetaData(singletonMap(LRA.LRA_HTTP_RECOVERY_HEADER, recoveryParticipantUri)));
                 // the aggregate is joined to the LRA context, the saved LRA context in the incoming context store is not needed anymore.
                 incomingContextsStore.deleteIncomingContextForAggregate(aggregateID);
             }
