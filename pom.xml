@@ -15,7 +15,7 @@
         <maven.compiler.target>1.8</maven.compiler.target>
         <axon.version>4.1.1</axon.version>
         <spring.version>2.1.6.RELEASE</spring.version>
-        <lra.version>5.10.0.Final</lra.version>
+        <lra.version>5.10.1.Final</lra.version>
         <microprofile.lra.version>1.0-RC1</microprofile.lra.version>
         <jersey.version>2.26</jersey.version>
         <lombok.version>1.18.8</lombok.version>
